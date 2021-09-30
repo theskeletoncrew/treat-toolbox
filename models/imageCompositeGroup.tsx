@@ -1,0 +1,127 @@
+import { db } from "../app-firebase";
+import {
+  query,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  deleteDoc,
+} from "firebase/firestore";
+import { Projects } from "./project";
+import { Collections } from "./collection";
+
+export default interface ImageCompositeGroup {
+  id: string;
+}
+
+export namespace ImageCompositeGroups {
+  export const FB_COLLECTION_NAME = "compositeGroups";
+
+  export const all = async (
+    projectId: string,
+    collectionId: string
+  ): Promise<Array<any>> => {
+    const compositesQuery = query(
+      collection(
+        db,
+        Projects.FB_COLLECTION_NAME +
+          "/" +
+          projectId +
+          "/" +
+          Collections.FB_COLLECTION_NAME +
+          "/" +
+          collectionId +
+          "/" +
+          FB_COLLECTION_NAME
+      )
+    );
+
+    const querySnapshot = await getDocs(compositesQuery);
+
+    const composites = querySnapshot.docs.map((compositeDoc) => {
+      const composite = compositeDoc.data();
+      composite.id = compositeDoc.id;
+      return composite;
+    });
+
+    return composites;
+  };
+
+  export const withId = async (
+    groupId: string,
+    projectId: string,
+    collectionId: string
+  ): Promise<ImageCompositeGroup> => {
+    const groupDocRef = doc(
+      db,
+      Projects.FB_COLLECTION_NAME +
+        "/" +
+        projectId +
+        "/" +
+        Collections.FB_COLLECTION_NAME +
+        "/" +
+        collectionId +
+        "/" +
+        FB_COLLECTION_NAME +
+        "/" +
+        groupId
+    );
+
+    let groupDoc = await getDoc(groupDocRef);
+
+    let group = groupDoc.data() as ImageCompositeGroup;
+    group.id = groupDoc.id;
+
+    return group;
+  };
+
+  export const create = async (
+    imageCompositeGroup: ImageCompositeGroup,
+    projectId: string,
+    collectionId: string
+  ): Promise<ImageCompositeGroup> => {
+    const docQuery = collection(
+      db,
+      Projects.FB_COLLECTION_NAME +
+        "/" +
+        projectId +
+        "/" +
+        Collections.FB_COLLECTION_NAME +
+        "/" +
+        collectionId +
+        "/" +
+        FB_COLLECTION_NAME
+    );
+
+    let docRef = await addDoc(docQuery, imageCompositeGroup);
+
+    imageCompositeGroup.id = docRef.id;
+
+    return {
+      ...imageCompositeGroup,
+    } as ImageCompositeGroup;
+  };
+
+  export const remove = async (
+    id: string,
+    projectId: string,
+    collectionId: string
+  ) => {
+    const docRef = doc(
+      db,
+      Projects.FB_COLLECTION_NAME +
+        "/" +
+        projectId +
+        "/" +
+        Collections.FB_COLLECTION_NAME +
+        "/" +
+        collectionId +
+        "/" +
+        FB_COLLECTION_NAME +
+        "/" +
+        id
+    );
+    return await deleteDoc(docRef);
+  };
+}
