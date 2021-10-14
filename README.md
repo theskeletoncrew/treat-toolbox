@@ -123,3 +123,9 @@ Want to give treat toolbox a spin, but dont have artwork handy? Take a look at t
 ### Troubleshooting
 
 For now, Treat Toolbox is lacking robust error reporting. If something feels off, check for errors in either one of the two running terminals (the web frontend or the firebase emulators) or alternatively, open the web console from the browser and check for errors there. If you do run into a problem, please file an Issue, or better yet, open a PR!
+
+### Made with Treat Toolbox
+
+Help us get the word out about this tool by using the banner provided below as a way to comply with MIT LICENSE attribution requirements. Let's make sure that every artist who wants to launch an NFT Collection on Solana has the means to do so! Please link the banner to https://treattoolbox.com.
+
+![Treat Toolbox Badge](https://user-images.githubusercontent.com/89115113/137352273-c4972230-8239-45b7-bfe1-be1767fd1115.png)
