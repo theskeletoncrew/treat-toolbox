@@ -40,7 +40,7 @@ First, you will need to get setup with Firebase, and install the Firebase emulat
 
 5. Go back to the "Project Overview" page, and under “Get Started by adding Firebase to your app”, click the </> icon named "Web". Register your app (hosting is not necessary).
 
-6. Under “Use npm”, copy the keys provided for the firebaseConfig. Enter these in the appropriate places in the `.env.local` file included in Treat Toolbox.
+6. Under “Use npm”, copy the keys provided for the firebaseConfig. Enter these in the appropriate places in the `.env` file included in Treat Toolbox.
 
 ```
 NEXT_PUBLIC_FIREBASE_API_KEY=YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
