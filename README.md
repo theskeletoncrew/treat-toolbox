@@ -103,6 +103,8 @@ npm run dev
 
 # Working with Treat Toolbox
 
+Here's a video of the basic usage of Treat Toolbox: https://vimeo.com/633276431  
+
 ### User Groups
 
 To start, you'll want to create a user group that contains all of your project creators (those that will receive secondary sales royalties).
