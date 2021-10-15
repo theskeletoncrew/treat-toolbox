@@ -2,6 +2,9 @@
 
 [Treat Toolbox](https://treattoolbox.com) | Twitter [@TreatToolbox](https://twitter.com/TreatToolbox) | Discord: [Skeleton Crew](https://discord.gg/skeletoncrewrip)
 
+Feeling generous? Your contributions help fund future development.  
+Send tips to our Solana wallet: CH6afYjjydFLPSrfQYEUNCdSNohLCAQV6ir6QnYeZU3t
+
 # About
 
 [Treat Toolbox](https://treattoolbox.com) is an open-source utility for managing the creation of generative-art NFT projects. The project was built by the team that created [The Skeleton Crew](https://skeletoncrew.rip) for use on their own project.
