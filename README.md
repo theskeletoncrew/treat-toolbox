@@ -106,6 +106,21 @@ N [No]
 Which Firebase emulators do you want to set up? 
 Functions, Firestore, Storage
 
+Which port do you want to use for the functions emulator? 
+5001 [just press enter]
+
+Which port do you want to use for the firestore emulator? 
+8080 [just press enter]
+
+Which port do you want to use for the storage emulator? 
+9199 [just press enter]
+
+Would you like to enable the Emulator UI? 
+Yes
+
+Which port do you want to use for the Emulator UI (leave empty to use any available port)? 
+[just press enter]
+
 Would you like to download the emulators now? 
 y [Yes]
 ```
