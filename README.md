@@ -55,23 +55,62 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:1111111111111:web:3333333333333333333333
 
 8. Run `firebase login` and follow the prompts to sign in.
 
-9. Run `firebase init` in the root of the checked out repo.
+9. Run `firebase init` in the root of the checked out repo. 
 
-10. Choose Firestore, Functions, Storage, Emulators.
+Use an existing project (the one you created in step 3).
 
-11. Use an existing project (the one you created in step 3).
-
-12. Follow the prompts. When asked for language for Cloud Functions, choose TypeScript.
-
-13. When asked what Emulators to setup, choose Authentication, Functions, Firestore, and Storage.
-
-14. Edit `firestore.rules`. Change the line `allow` so that you have the necessary permissions. You'll want to harden these rules for anything other than _local_ emulator use. The updated line should read:
-
+Use the answers below:
 ```
-`allow read, write: if true;`
+Which Firebase features do you want to set up for this directory? 
+Choose Firestore, Functions, Storage, Emulators.
+
+What file should be used for Firestore Rules? 
+firestore.rules [just press enter]
+
+File firestore.rules already exists. Do you want to overwrite it with the Firestore Rules from the Firebase Console?
+N [No]
+
+What file should be used for Firestore indexes? 
+firestore.indexes.json [just press enter]
+
+File firestore.indexes.json already exists. Do you want to overwrite it with the Firestore Indexes from the Firebase Console?
+N [No]
+
+What language would you like to use to write Cloud Functions? 
+Typescript
+
+Do you want to use ESLint to catch probable bugs and enforce style? 
+n [No]
+
+File functions/package.json already exists. Overwrite? 
+N [No]
+
+File functions/tsconfig.json already exists. Overwrite? 
+N [No]
+
+File functions/src/index.ts already exists. Overwrite? 
+N [Np]
+
+File functions/.gitignore already exists. Overwrite? 
+N [No]
+
+Do you want to install dependencies with npm now? 
+Y [Yes]
+
+What file should be used for Storage Rules? 
+storage.rules [just press enter]
+
+File storage.rules already exists. Overwrite? 
+N [No]
+
+Which Firebase emulators do you want to set up? 
+Functions, Firestore, Storage
+
+Would you like to download the emulators now? 
+y [Yes]
 ```
 
-15. Next, start the emulators:
+10. Next, start the emulators:
 
 ```bash
 npm install --prefix=functions
@@ -86,20 +125,20 @@ firebase emulators:start --import ~/.firebase-data --export-on-exit ~/.firebase-
 
 **_Note_**: _If the emulators fail to start, see `firestore-debug.log`. One common cause for failure is that you may need to install the [java runtime](http://www.java.com.)_
 
-16. When the emulators start, the API url for your cloud functions will be output in the form:
+11. When the emulators start, the API url for your cloud functions will be output in the form:
 
 `functions[us-central1-api]: http function initialized (http://localhost:5001/projectdemo-a111a/us-central1/api).`
 
 Copy this url and enter it in the file `.env` for the value `NEXT_PUBLIC_FIREBASE_FUNCTIONS_API_ENDPOINT`.
 
-18. Then, in a separate terminal, start the development web server:
+12. Then, in a separate terminal, start the development web server:
 
 ```bash
 npm install
 npm run dev
 ```
 
-17. Open [http://localhost:3000](http://localhost:3000) with your browser and start using Treat Toolbox!
+13. Open [http://localhost:3000](http://localhost:3000) with your browser and start using Treat Toolbox!
 
 # Working with Treat Toolbox
 
