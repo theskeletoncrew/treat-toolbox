@@ -28,10 +28,6 @@
 
 # firebase config
 .firebaserc
-firebase.json
-firestore.indexes.json
-firestore.rules
-storage.rules
 
 # vercel
 .vercel
