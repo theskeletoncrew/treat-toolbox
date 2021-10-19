@@ -20,7 +20,7 @@ export default interface Collection {
   sellerFeeBasisPoints: number;
   symbol: string;
   status: DropStatus;
-  startDate: Date;
+  startDate: Date | null;
   userGroupId: string;
 }
 
@@ -50,7 +50,7 @@ export namespace Collections {
     const collections = querySnapshot.docs.map((collectionDoc) => {
       const collection = collectionDoc.data() as Collection;
       collection.id = collectionDoc.id;
-      collection.startDate = collectionDoc.data().startDate.toDate();
+      collection.startDate = null;
       return collection;
     });
 
@@ -75,7 +75,7 @@ export namespace Collections {
     const collectionDoc = await getDoc(collectionDocRef);
     const collection = collectionDoc.data() as Collection;
     collection.id = collectionDoc.id;
-    collection.startDate = collectionDoc.data()?.startDate.toDate();
+    collection.startDate = null;
     return collection;
   };
 

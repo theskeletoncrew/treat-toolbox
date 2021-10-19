@@ -40,13 +40,6 @@ export default function CreatePage(props: Props) {
     );
     const symbol = data.get("symbol")?.toString().trim().toUpperCase();
 
-    const startDateInput = data.get("startDate")?.toString().trim() ?? "";
-    let startDate = new Date(startDateInput);
-    if (!startDate) {
-      const today = new Date();
-      startDate = new Date(today.setMonth(today.getMonth() + 1));
-    }
-
     const creatorsGroupId = data.get("creators")?.toString().trim();
 
     const collection = {
@@ -55,7 +48,6 @@ export default function CreatePage(props: Props) {
       sellerFeeBasisPoints: sellerFeeBasisPoints,
       symbol: symbol,
       status: DropStatus.Pending,
-      startDate: startDate,
       userGroupId: creatorsGroupId,
     } as Collection;
 
@@ -184,25 +176,6 @@ export default function CreatePage(props: Props) {
                           );
                         })}
                       </select>
-                    </div>
-
-                    <div className="col-span-6 sm:col-span-4">
-                      <label
-                        htmlFor="startDate"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Launch Date
-                      </label>
-                      <input
-                        type="text"
-                        name="startDate"
-                        id="startDate"
-                        placeholder="10/01/2021 17:00:00"
-                        className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
-                      />
-                      <p className="mt-2 text-xs text-gray-500">
-                        ex. &ldquo;10/31/2021 01:30:00 PM&rdquo;
-                      </p>
                     </div>
                   </div>
 

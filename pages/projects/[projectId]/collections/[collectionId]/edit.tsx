@@ -27,15 +27,6 @@ export default function EditPage(props: Props) {
   const collection = props.collection;
   const userGroups = props.userGroups;
 
-  let launchDate: string = "";
-
-  if (collection) {
-    launchDate =
-      collection.startDate.toLocaleDateString() +
-      " " +
-      collection.startDate.toLocaleTimeString();
-  }
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
@@ -52,13 +43,6 @@ export default function EditPage(props: Props) {
     );
     const symbol = data.get("symbol")?.toString().trim().toUpperCase();
 
-    const startDateInput = data.get("startDate")?.toString().trim() ?? "";
-    let startDate = new Date(startDateInput);
-    if (!startDate) {
-      const today = new Date();
-      startDate = new Date(today.setMonth(today.getMonth() + 1));
-    }
-
     const creatorsGroupId = data.get("creators")?.toString().trim();
 
     await Collections.update(
@@ -68,7 +52,6 @@ export default function EditPage(props: Props) {
         sellerFeeBasisPoints: sellerFeeBasisPoints,
         symbol: symbol,
         status: DropStatus.Pending,
-        startDate: startDate,
         userGroupId: creatorsGroupId,
       },
       collection.id,
@@ -184,7 +167,7 @@ export default function EditPage(props: Props) {
 
                     <div className="col-span-6 sm:col-span-4">
                       <label
-                        htmlFor="startDate"
+                        htmlFor="creators"
                         className="block text-sm font-medium text-gray-700"
                       >
                         Creators
@@ -203,26 +186,6 @@ export default function EditPage(props: Props) {
                           );
                         })}
                       </select>
-                    </div>
-
-                    <div className="col-span-6 sm:col-span-4">
-                      <label
-                        htmlFor="startDate"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Launch Date
-                      </label>
-                      <input
-                        type="text"
-                        name="startDate"
-                        id="startDate"
-                        placeholder="09/01/2021 04:00:00"
-                        defaultValue={launchDate}
-                        className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
-                      />
-                      <p className="mt-2 text-xs text-gray-500">
-                        ex. &ldquo;10/31/2021 01:30:00 PM&rdquo;
-                      </p>
                     </div>
                   </div>
 
