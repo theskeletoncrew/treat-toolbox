@@ -233,7 +233,9 @@ export namespace ImageComposites {
     const querySnapshot = await getDocs(compositesQuery);
 
     const composites = querySnapshot.docs.map((compositeDoc) => {
-      return compositeDoc.data() as ImageComposite;
+      let composite = compositeDoc.data() as ImageComposite;
+      composite.id = compositeDoc.id;
+      return composite;
     });
 
     let compositeIdsToDelete: string[] = [];
