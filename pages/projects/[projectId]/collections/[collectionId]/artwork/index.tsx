@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import Layout from "../../../../../../components/Layout";
 import { EmptyState } from "../../../../../../components/EmptyState";
-import { TrashIcon, DocumentAddIcon } from "@heroicons/react/outline";
+import {
+  TrashIcon,
+  DocumentAddIcon,
+  RefreshIcon,
+} from "@heroicons/react/outline";
 import DropsSubnav from "../../../../../../components/DropsSubnav";
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
@@ -108,6 +112,50 @@ export default function IndexPage(props: Props) {
     // STOP LOADING
   };
 
+  const syncFilenamesToTraits = async () => {
+    let updates: Promise<void>[] = [];
+
+    imageLayers.forEach((imageLayer) => {
+      // strip extension from filename
+      const imageName = imageLayer.name.replace(/\.[^/.]+$/, "");
+      const components = imageName.split(new RegExp(/[\_\-\ ]/, "i"));
+
+      if (components.length == 2) {
+        //const traitName = components[0].toLowerCase();
+        //const traitValueName = components[1].toLowerCase();
+
+        const traitName = "style";
+        const traitValueName = components[0] + " " + components[1];
+
+        const trait = traits.find((trait) => {
+          return trait.name.toLowerCase() == traitName;
+        });
+        if (trait) {
+          const traitValue = traitValuesDict[trait.id].find((traitValue) => {
+            return traitValue.name.toLowerCase() == traitValueName;
+          });
+
+          if (traitValue) {
+            updates.push(
+              ImageLayers.update(
+                {
+                  traitId: trait.id,
+                  traitValueId: traitValue.id,
+                },
+                imageLayer.id,
+                project.id,
+                collection.id
+              )
+            );
+          }
+        }
+      }
+    });
+
+    await Promise.all(updates);
+    router.reload();
+  };
+
   if (!collection) {
     return (
       <Layout
@@ -179,7 +227,7 @@ export default function IndexPage(props: Props) {
           />
           <main>
             <div className="mt-4 mr-8 float-right">
-              <span className="">
+              <span className="pr-4">
                 <Link
                   href={
                     "/projects/" +
@@ -201,6 +249,19 @@ export default function IndexPage(props: Props) {
                     Add Artwork
                   </button>
                 </Link>
+              </span>
+              <span>
+                <button
+                  type="button"
+                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={(e) => syncFilenamesToTraits()}
+                >
+                  <RefreshIcon
+                    className="-ml-1 mr-1 h-5 w-5"
+                    aria-hidden="true"
+                  />
+                  Sync Filenames to Traits
+                </button>
               </span>
             </div>
 
