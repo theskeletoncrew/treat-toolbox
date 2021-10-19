@@ -121,11 +121,8 @@ export default function IndexPage(props: Props) {
       const components = imageName.split(new RegExp(/[\_\-\ ]/, "i"));
 
       if (components.length == 2) {
-        //const traitName = components[0].toLowerCase();
-        //const traitValueName = components[1].toLowerCase();
-
-        const traitName = "style";
-        const traitValueName = components[0] + " " + components[1];
+        const traitName = components[0].toLowerCase();
+        const traitValueName = components[1].toLowerCase();
 
         const trait = traits.find((trait) => {
           return trait.name.toLowerCase() == traitName;
