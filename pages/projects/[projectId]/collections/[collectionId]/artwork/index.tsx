@@ -68,7 +68,7 @@ export default function IndexPage(props: Props) {
 
     await ImageLayers.update(
       {
-        traitId: traitId,
+        traitId: traitId == "-1" ? null : traitId,
       },
       imageLayerId,
       projectId,
@@ -82,11 +82,11 @@ export default function IndexPage(props: Props) {
     );
 
     if (traitValueElem) {
-      const nonNilOptions = traitValuesDict[traitId].map((traitValue) => {
+      const nonNilOptions = traitValuesDict[traitId]?.map((traitValue) => {
         return `<option value=${traitValue.id}>${traitValue.name}</option>`;
       });
       traitValueElem.innerHTML =
-        '<option key="-1" value="-1"></option>' + nonNilOptions.join();
+        '<option key="-1" value="-1"></option>' + nonNilOptions?.join();
     }
   };
 
