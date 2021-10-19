@@ -735,7 +735,7 @@ export class ArtworkGenerator {
   }
 
   projectDownloadPath(): string {
-    return path.join(tempDir, "fairlaunch", this.projectId);
+    return path.join(tempDir, "treattoolbox", this.projectId);
   }
 
   layerDownloadPath(): string {
