@@ -6,6 +6,8 @@ import {
   TrashIcon,
   PencilAltIcon,
   DocumentAddIcon,
+  DocumentDuplicateIcon,
+  ChartPieIcon,
 } from "@heroicons/react/outline";
 import { GetServerSideProps } from "next";
 import Project, { Projects } from "../../../../../../../models/project";
@@ -68,6 +70,28 @@ export default function IndexPage(props: Props) {
   const cancelDeleteTraitValue = async () => {
     setTraitValueIdToDelete(null);
     setDeleteModalOpen(false);
+  };
+
+  const distributeRarity = async () => {
+    const updatedRarity = 1 / traitValues.length;
+
+    let updates: Promise<void>[] = [];
+    traitValues.forEach((traitValue) => {
+      updates.push(
+        TraitValues.update(
+          {
+            rarity: updatedRarity,
+          },
+          traitValue.id,
+          project.id,
+          collection.id,
+          trait.id
+        )
+      );
+    });
+
+    await Promise.all(updates);
+    router.reload();
   };
 
   if (!trait) {
@@ -141,7 +165,7 @@ export default function IndexPage(props: Props) {
                   type="button"
                   className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
-                  <DocumentAddIcon
+                  <DocumentDuplicateIcon
                     className="-ml-1 mr-1 h-5 w-5"
                     aria-hidden="true"
                   />
@@ -168,6 +192,74 @@ export default function IndexPage(props: Props) {
             section="traits"
           />
           <main className="px-8 py-12">
+            <div className="mb-6 float-right">
+              <span className="pr-4">
+                <Link
+                  href={
+                    "/projects/" +
+                    project.id +
+                    "/collections/" +
+                    collection.id +
+                    "/traits/" +
+                    trait.id +
+                    "/values/create"
+                  }
+                  passHref={true}
+                >
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <DocumentAddIcon
+                      className="-ml-1 mr-1 h-5 w-5"
+                      aria-hidden="true"
+                    />
+                    Add Value
+                  </button>
+                </Link>
+              </span>
+
+              <span className="pr-4">
+                <Link
+                  href={
+                    "/projects/" +
+                    project.id +
+                    "/collections/" +
+                    collection.id +
+                    "/traits/" +
+                    trait.id +
+                    "/values/create-list"
+                  }
+                  passHref={true}
+                >
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <DocumentDuplicateIcon
+                      className="-ml-1 mr-1 h-5 w-5"
+                      aria-hidden="true"
+                    />
+                    Add a List of Values
+                  </button>
+                </Link>
+              </span>
+
+              <span>
+                <button
+                  type="button"
+                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={(e) => distributeRarity(e)}
+                >
+                  <ChartPieIcon
+                    className="-ml-1 mr-1 h-5 w-5"
+                    aria-hidden="true"
+                  />
+                  Distribute Rarity Evenly
+                </button>
+              </span>
+            </div>
+
             <div className="mb-4">
               {trait.isMetadataOnly ? (
                 trait.name
@@ -181,7 +273,8 @@ export default function IndexPage(props: Props) {
                 </h1>
               )}
             </div>
-            <div className="flex flex-col">
+
+            <div className="flex flex-col clear-both">
               <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                   <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
@@ -292,34 +385,6 @@ export default function IndexPage(props: Props) {
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-6">
-              <span>
-                <Link
-                  href={
-                    "/projects/" +
-                    project.id +
-                    "/collections/" +
-                    collection.id +
-                    "/traits/" +
-                    trait.id +
-                    "/values/create"
-                  }
-                  passHref={true}
-                >
-                  <button
-                    type="button"
-                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <DocumentAddIcon
-                      className="-ml-1 mr-1 h-5 w-5"
-                      aria-hidden="true"
-                    />
-                    Add Value
-                  </button>
-                </Link>
-              </span>
             </div>
           </main>
 
