@@ -340,13 +340,6 @@ export class ArtworkGenerator {
         }
       }
 
-      // all matches means we have a conflict - time to handle resolution:
-      if (conflict.resolutionType == ConflictResolutionType.Trait1Wins) {
-        traitValuePairs[trait2Index].traitValue = null;
-      } else if (conflict.resolutionType == ConflictResolutionType.Trait2Wins) {
-        traitValuePairs[trait1Index].traitValue = null;
-      }
-
       const trait1Name = traitValuePairs[trait1Index].trait.name;
       const trait2Name = traitValuePairs[trait2Index].trait.name;
       const trait1ValueName =
@@ -357,6 +350,13 @@ export class ArtworkGenerator {
         trait2ValueIndex == -1
           ? "Any"
           : traitValuePairs[trait2ValueIndex].traitValue?.name ?? "Any";
+
+      // all matches means we have a conflict - time to handle resolution:
+      if (conflict.resolutionType == ConflictResolutionType.Trait1Wins) {
+        traitValuePairs[trait2Index].traitValue = null;
+      } else if (conflict.resolutionType == ConflictResolutionType.Trait2Wins) {
+        traitValuePairs[trait1Index].traitValue = null;
+      }
 
       const resolution =
         conflict.resolutionType == ConflictResolutionType.Trait2Wins
