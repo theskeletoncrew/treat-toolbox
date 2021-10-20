@@ -316,25 +316,28 @@ export class ArtworkGenerator {
         continue;
       }
 
-      const trait1ValueIndex = traitValuePairs.findIndex(
-        (pair) => pair.traitValue?.id == conflict.trait1ValueId
-      );
-      if (trait1ValueIndex == -1) {
-        continue;
+      let trait1ValueIndex = -1;
+      if (conflict.trait1ValueId !== null) {
+        trait1ValueIndex = traitValuePairs.findIndex(
+          (pair) =>
+            pair.trait.id == conflict.trait1Id &&
+            pair.traitValue?.id == conflict.trait1ValueId
+        );
+        if (trait1ValueIndex == -1) {
+          continue;
+        }
       }
 
-      const trait2ValueIndex = traitValuePairs.findIndex(
-        (pair) => pair.traitValue?.id == conflict.trait2ValueId
-      );
-      if (trait2ValueIndex == -1) {
-        continue;
-      }
-
-      // all matches means we have a conflict - time to handle resolution:
-      if (conflict.resolutionType == ConflictResolutionType.Trait1Wins) {
-        traitValuePairs[trait2Index].traitValue = null;
-      } else if (conflict.resolutionType == ConflictResolutionType.Trait2Wins) {
-        traitValuePairs[trait1Index].traitValue = null;
+      let trait2ValueIndex = -1;
+      if (conflict.trait2ValueId !== null) {
+        trait2ValueIndex = traitValuePairs.findIndex(
+          (pair) =>
+            pair.trait.id == conflict.trait2Id &&
+            pair.traitValue?.id == conflict.trait2ValueId
+        );
+        if (trait2ValueIndex == -1) {
+          continue;
+        }
       }
 
       const trait1Name = traitValuePairs[trait1Index].trait.name;
@@ -347,6 +350,13 @@ export class ArtworkGenerator {
         trait2ValueIndex == -1
           ? "Any"
           : traitValuePairs[trait2ValueIndex].traitValue?.name ?? "Any";
+
+      // all matches means we have a conflict - time to handle resolution:
+      if (conflict.resolutionType == ConflictResolutionType.Trait1Wins) {
+        traitValuePairs[trait2Index].traitValue = null;
+      } else if (conflict.resolutionType == ConflictResolutionType.Trait2Wins) {
+        traitValuePairs[trait1Index].traitValue = null;
+      }
 
       const resolution =
         conflict.resolutionType == ConflictResolutionType.Trait2Wins
