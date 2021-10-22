@@ -146,7 +146,7 @@ firebase emulators:start --import ~/.firebase-data --export-on-exit ~/.firebase-
 
 Copy this url and enter it in the file `.env` for the value `NEXT_PUBLIC_FIREBASE_FUNCTIONS_API_ENDPOINT`.
 
-12. Then, in a separate terminal, start the development web server:
+12. Then, in a separate terminal inside root of the checked out repo, start the development web server:
 
 ```bash
 npm install
