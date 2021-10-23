@@ -131,11 +131,11 @@ y [Yes]
 npm install --prefix=functions
 npm run build --prefix=functions
 
-# start firebase without data persistence:
-firebase emulators:start
-
-# or, with data persistence:
-firebase emulators:start --import ~/.firebase-data --export-on-exit ~/.firebase-data
+# IMPORTANT: 
+# when starting the firebase emulators, specify a directory you have access to
+# to save your work. for ex. to save to a folder called "backup" use the 
+# firebase command below with import and export-on-exit params as shown:  
+firebase emulators:start --import backup --export-on-exit backup
 ```
 
 **_Note_**: _If the emulators fail to start, see `firestore-debug.log`. One common cause for failure is that you may need to install the [java runtime](http://www.java.com.)_
