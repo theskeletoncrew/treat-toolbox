@@ -1,4 +1,5 @@
 import Layout from "../../../../../../../components/Layout";
+import Link from "next/link";
 import DropsSubnav from "../../../../../../../components/DropsSubnav";
 import Project, { Projects } from "../../../../../../../models/project";
 import Collection, {
@@ -30,6 +31,7 @@ export default function IndexPage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const composites = props.composites;
+  const compositeGroupId = props.compositeGroupId;
   const traits = props.traits;
   const traitValuesDict = props.traitValuesDict;
   const projectId = props.projectId;
@@ -68,7 +70,29 @@ export default function IndexPage(props: Props) {
             collection={collection}
             section="composites"
           />
-          <main>
+          <main style={{ display: "inline" }}>
+            <div className="mt-4 mr-8 float-right">
+              <Link
+                href={
+                  "/projects/" +
+                  projectId +
+                  "/collections/" +
+                  collection.id +
+                  "/composites/" +
+                  compositeGroupId
+                }
+                passHref={true}
+              >
+                <a>
+                  <button
+                    type="button"
+                    className="inline-flex items-center mr-2 px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Back To Composite
+                  </button>
+                </a>
+              </Link>
+            </div>
             {traits.map((trait) => {
               return (
                 <div key={trait.id} className="m-10">

@@ -1,5 +1,6 @@
 import Header from "../../../../../../../components/Header";
 import Layout from "../../../../../../../components/Layout";
+import Link from "next/link";
 import FormDescription from "../../../../../../../components/FormDescription";
 import Project, { Projects } from "../../../../../../../models/project";
 import Collection, {
@@ -171,6 +172,28 @@ export default function CreatePage(props: Props) {
       selectedProjectId={projectId}
     >
       <Header title="Create a Composite" />
+      <div className="mt-4 mr-8 float-right">
+        <Link
+          href={
+            "/projects/" +
+            projectId +
+            "/collections/" +
+            collection.id +
+            "/composites/" +
+            compositeGroup.id
+          }
+          passHref={true}
+        >
+          <a>
+            <button
+              type="button"
+              className="inline-flex items-center mr-2 px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Back To Composite
+            </button>
+          </a>
+        </Link>
+      </div>
       <main className="px-8 py-12">
         <div>
           <div className="md:grid md:grid-cols-3 md:gap-6">
