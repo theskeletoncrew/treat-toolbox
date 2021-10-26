@@ -95,39 +95,43 @@ export default function IndexPage(props: Props) {
       jsonExports.push(jsonExport);
     }
 
-    Promise.all(jsonExports).then(() => {
-      fetch(
-        API.ENDPOINT +
-          "/download-archive?projectId=" +
-          projectId +
-          "&collectionId=" +
-          collection.id +
-          "&compositeGroupId=" +
-          compositeGroupId,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
+    Promise.all(jsonExports)
+      .then(() => {
+        fetch(
+          API.ENDPOINT +
+            "/download-archive?projectId=" +
+            projectId +
+            "&collectionId=" +
+            collection.id +
+            "&compositeGroupId=" +
+            compositeGroupId,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
           }
-          return response.json();
-        })
-        .then((json) => {
-          console.log(json);
-          setExportingModalOpen(false);
-          setDownloadURL(json.url);
-          setDownloadModalOpen(true);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-    });
+        )
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((json) => {
+            console.log(json);
+            setExportingModalOpen(false);
+            setDownloadURL(json.url);
+            setDownloadModalOpen(true);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      })
+      .catch((e) => {
+        console.error("Failure prepping before download: " + e);
+      });
   }
 
   if (!projects) {

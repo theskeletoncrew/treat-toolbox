@@ -3,9 +3,6 @@ import * as express from "express";
 import { ArtworkGenerator } from "../ArtworkGenerator";
 import { CandyMachineDownloader } from "../CandyMachineDownloader";
 
-const admin = require("firebase-admin");
-admin.initializeApp();
-
 const api = express();
 api.use(cors({ origin: true }));
 

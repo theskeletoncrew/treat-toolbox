@@ -130,31 +130,8 @@ export default function IndexPage(props: Props) {
           console.error("Error:", error);
         });
 
-      await Promise.all(
-        newComposites.map((newComposite: ImageComposite) => {
-          newComposite.traitsHash = ImageComposites.traitsHash(newComposite);
-          return ImageComposites.create(
-            newComposite,
-            projectId,
-            collection.id,
-            compositeGroup.id
-          );
-        })
-      );
-
       batchNum += 1;
       totalCreated = batchNum * BATCH_SIZE;
-
-      // when we think we're finished, detect and delete duplicates
-      if (totalCreated >= collection.supply) {
-        const numDuplicatesRemoved = await ImageComposites.removeDuplicates(
-          projectId,
-          collection.id,
-          compositeGroup.id
-        );
-
-        totalCreated -= numDuplicatesRemoved;
-      }
     }
 
     console.log("art generation complete");

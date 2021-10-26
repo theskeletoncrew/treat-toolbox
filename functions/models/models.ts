@@ -1,3 +1,5 @@
+import { db } from "./firebase";
+
 export interface Collection {
   id: string;
   name: string;
@@ -66,4 +68,73 @@ export interface ImageComposite {
   id: string;
   externalURL: string | null;
   traits: TraitValuePair[];
+  traitsHash: string;
+}
+
+export namespace ImageComposites {
+  export const create = async (
+    imageComposite: ImageComposite,
+    projectId: string,
+    collectionId: string,
+    compositeGroupId: string
+  ): Promise<ImageComposite> => {
+    imageComposite.traitsHash = traitsHash(imageComposite.traits);
+
+    const docQuery = db.collection(
+      "/projects/" +
+        projectId +
+        "/collections/" +
+        collectionId +
+        "/compositeGroups/" +
+        compositeGroupId +
+        "/composites"
+    );
+
+    await docQuery.add(imageComposite);
+
+    return {
+      ...imageComposite,
+    } as ImageComposite;
+  };
+
+  export const isUniqueTraitsHash = async (
+    hash: string,
+    projectId: string,
+    collectionId: string,
+    compositeGroupId: string
+  ): Promise<boolean> => {
+    const compositesQuery = db
+      .collection(
+        "/projects/" +
+          projectId +
+          "/collections/" +
+          collectionId +
+          "/compositeGroups/" +
+          compositeGroupId +
+          "/composites"
+      )
+      .where("traitsHash", "==", hash)
+      .limit(1);
+
+    const querySnapshot = await compositesQuery.get();
+    const isUnique = querySnapshot.docs.length == 0;
+
+    return isUnique;
+  };
+
+  export const traitsHash = (traitValuePairs: TraitValuePair[]): string => {
+    return traitValuePairs
+      .sort((a, b) => {
+        const zIndexA = a.trait.zIndex;
+        const zIndexB = b.trait.zIndex;
+        return zIndexA < zIndexB ? -1 : zIndexA == zIndexB ? 0 : 1;
+      })
+      .reduce(function (result, traitPair) {
+        if (traitPair.trait.isMetadataOnly || traitPair.traitValue == null) {
+          return result;
+        }
+
+        return result + (traitPair.traitValue.id ?? "");
+      }, "");
+  };
 }

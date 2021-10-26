@@ -1,5 +1,6 @@
 import { DocumentSnapshot } from "firebase-functions/v1/firestore";
 import { logger } from "firebase-functions";
+import { db, storage } from "../models/firebase";
 import {
   Collection,
   Trait,
@@ -8,6 +9,7 @@ import {
   OrderedImageLayer,
   TraitValuePair,
   ImageComposite,
+  ImageComposites,
   Conflict,
   ConflictResolutionType,
 } from "../models/models";
@@ -17,8 +19,6 @@ const os = require("os");
 const fs = require("fs");
 const tempDir = os.tmpdir();
 
-const admin = require("firebase-admin");
-
 const TRAITVALUES_RARITY_MAX_PRECISION: number = 4;
 
 export class ArtworkGenerator {
@@ -27,9 +27,6 @@ export class ArtworkGenerator {
   compositeGroupId: string;
   batchNum: number;
   batchSize: number;
-
-  db = admin.firestore();
-  storage = admin.storage();
 
   constructor(
     projectId: string,
@@ -133,8 +130,9 @@ export class ArtworkGenerator {
 
     logger.info("Generating: " + startIndex + " - " + endIndex);
 
-    for (let i = startIndex; i < endIndex; i++) {
-      const composite = await this.generateArtworkForItem(
+    let i = startIndex;
+    while (i < endIndex) {
+      const compositeData = await this.generateArtworkForItem(
         i,
         collection,
         traits,
@@ -144,17 +142,30 @@ export class ArtworkGenerator {
         conflicts,
         projectDownloadPath
       );
+
+      if (!compositeData) {
+        console.log("no composite data");
+        continue;
+      }
+
+      const composite = await ImageComposites.create(
+        compositeData,
+        this.projectId,
+        this.collectionId,
+        this.compositeGroupId
+      );
+
       composites.push(composite);
 
-      if (composite) {
-        // remove any possible values for metadata-only traits
-        // so that they can only be used once
-        traitValues = this.removeUsedMetadataOnlyTraitValues(
-          traits,
-          traitValues,
-          composite
-        );
-      }
+      // remove any possible values for metadata-only traits
+      // so that they can only be used once
+      traitValues = this.removeUsedMetadataOnlyTraitValues(
+        traits,
+        traitValues,
+        composite
+      );
+
+      i++;
     }
 
     // only do cleanup if we just finished the last batch of the run
@@ -185,10 +196,22 @@ export class ArtworkGenerator {
     conflicts: Conflict[],
     projectDownloadPath: string
   ): Promise<ImageComposite | null> {
-    let traitValuePairs: TraitValuePair[];
+    let traitValuePairs: TraitValuePair[] = [];
 
-    // generate a pair mapping trait to a random trait value
-    traitValuePairs = await this.randomTraitValues(traits, traitValues);
+    let hasUnusedTraitValuePair = false;
+
+    while (!hasUnusedTraitValuePair) {
+      // generate a pair mapping trait to a random trait value
+      traitValuePairs = await this.randomTraitValues(traits, traitValues);
+
+      const hash = ImageComposites.traitsHash(traitValuePairs);
+      hasUnusedTraitValuePair = await ImageComposites.isUniqueTraitsHash(
+        hash,
+        this.projectId,
+        this.collectionId,
+        this.compositeGroupId
+      );
+    }
 
     // deal with any pairs that conflict / we dont want to happen
     traitValuePairs = this.resolveConflicts(traitValuePairs, conflicts);
@@ -229,7 +252,7 @@ export class ArtworkGenerator {
 
     if (succeeded) {
       // upload the composite back to the bucket
-      const bucket = this.storage.bucket();
+      const bucket = storage.bucket();
       const uploadFilePath =
         this.projectId +
         "/" +
@@ -260,6 +283,7 @@ export class ArtworkGenerator {
       const imageComposite = {
         externalURL: downloadURL,
         traits: sortedTraitValueImagePairs,
+        traitsHash: ImageComposites.traitsHash(sortedTraitValueImagePairs),
       } as ImageComposite;
 
       return imageComposite;
@@ -286,7 +310,7 @@ export class ArtworkGenerator {
   }
 
   async fetchCollection(): Promise<Collection> {
-    const collectionDoc = await this.db
+    const collectionDoc = await db
       .doc("/projects/" + this.projectId + "/collections/" + this.collectionId)
       .get();
 
@@ -412,7 +436,7 @@ export class ArtworkGenerator {
    * @returns an array of Trait for the given collection
    */
   async fetchTraits(): Promise<Trait[]> {
-    const traitsQuery = await this.db
+    const traitsQuery = await db
       .collection(
         "/projects/" +
           this.projectId +
@@ -443,7 +467,7 @@ export class ArtworkGenerator {
     traitId: string,
     isMetadataOnly: boolean
   ): Promise<TraitValue[]> {
-    const traitValuesQuery = await this.db
+    const traitValuesQuery = await db
       .collection(
         "/projects/" +
           this.projectId +
@@ -474,7 +498,7 @@ export class ArtworkGenerator {
           "/composites"
       );
 
-      const existingCompositesQuery = await this.db
+      const existingCompositesQuery = await db
         .collection(
           "/projects/" +
             this.projectId +
@@ -581,7 +605,7 @@ export class ArtworkGenerator {
    * fetch all image layers
    */
   async fetchArtwork(): Promise<ImageLayer[]> {
-    const imageLayerQuery = await this.db
+    const imageLayerQuery = await db
       .collection(
         "/projects/" +
           this.projectId +
@@ -607,7 +631,7 @@ export class ArtworkGenerator {
    * fetch all conflicts
    */
   async fetchConflicts(): Promise<Conflict[]> {
-    const conflictsQuery = await this.db
+    const conflictsQuery = await db
       .collection(
         "/projects/" +
           this.projectId +
@@ -633,8 +657,8 @@ export class ArtworkGenerator {
     return path.join(this.layerDownloadPath(), imageLayer.id + ".png");
   }
 
-  async downloadImageFile(imageLayer: ImageLayer): Promise<TraitValuePair> {
-    const bucket = this.storage.bucket();
+  async downloadImageFile(imageLayer: ImageLayer): Promise<string> {
+    const bucket = storage.bucket();
     const file = bucket.file(
       this.projectId + "/" + this.collectionId + "/" + imageLayer.bucketFilename
     );

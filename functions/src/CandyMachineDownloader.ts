@@ -1,16 +1,13 @@
 import { logger } from "firebase-functions";
 import { v4 as uuidv4 } from "uuid";
 import { Collection } from "../models/models";
-
-const admin = require("firebase-admin");
+import { db, storage } from "../models/firebase";
 
 export class CandyMachineDownloader {
   projectId: string;
   collectionId: string;
   compositeGroupId: string;
 
-  db = admin.firestore();
-  storage = admin.storage();
   archiver = require("archiver");
 
   constructor(
@@ -25,7 +22,7 @@ export class CandyMachineDownloader {
 
   async download(): Promise<string> {
     logger.info("beginning downloads for archive");
-    const bucket = this.storage.bucket();
+    const bucket = storage.bucket();
 
     // generate random name for a file
     const filePath = uuidv4();
@@ -98,7 +95,7 @@ export class CandyMachineDownloader {
   }
 
   async fetchCollection(): Promise<Collection> {
-    const collectionDoc = await this.db
+    const collectionDoc = await db
       .doc("/projects/" + this.projectId + "/collections/" + this.collectionId)
       .get();
 
@@ -107,7 +104,7 @@ export class CandyMachineDownloader {
     return collection;
   }
 
-  pathForComposite(itemIndex: number): String {
+  pathForComposite(itemIndex: number): string {
     const compositeFilePath =
       this.projectId +
       "/" +
@@ -121,7 +118,7 @@ export class CandyMachineDownloader {
     return compositeFilePath;
   }
 
-  pathForCandyMachineMetadata(itemIndex: number): String {
+  pathForCandyMachineMetadata(itemIndex: number): string {
     const metadataFilePath =
       this.projectId +
       "/" +
