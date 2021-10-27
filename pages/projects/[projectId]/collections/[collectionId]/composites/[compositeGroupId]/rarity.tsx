@@ -88,7 +88,7 @@ export default function IndexPage(props: Props) {
                     type="button"
                     className="inline-flex items-center mr-2 px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
-                    Back To Composite
+                    Back to Composite Group
                   </button>
                 </a>
               </Link>

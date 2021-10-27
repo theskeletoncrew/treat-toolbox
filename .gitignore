@@ -31,6 +31,3 @@
 
 # vercel
 .vercel
-
-# traits (keep folder)
-traits/*.png
