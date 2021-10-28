@@ -65,7 +65,6 @@ export default function IndexPage(props: Props) {
 
       const jsonExport = new Promise<void>((resolve, reject) => {
         setTimeout(() => {
-          setExportingItem(i);
           CandyMachine.exportItem(
             i,
             project,
@@ -75,6 +74,7 @@ export default function IndexPage(props: Props) {
             composite
           )
             .then((isSuccessful) => {
+              setExportingItem(i);
               console.log(
                 "Export of " +
                   i +
