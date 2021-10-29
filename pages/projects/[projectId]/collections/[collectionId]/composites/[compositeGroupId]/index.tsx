@@ -92,7 +92,7 @@ export default function IndexPage(props: Props) {
               console.log(e);
               reject();
             });
-        }, i * 100);
+        }, i * 200);
       });
 
       jsonExports.push(jsonExport);
