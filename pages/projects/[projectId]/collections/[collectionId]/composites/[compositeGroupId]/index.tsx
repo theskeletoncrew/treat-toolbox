@@ -18,6 +18,7 @@ import { API } from "../../../../../../../models/api";
 import { ProgressModal } from "../../../../../../../components/ProgressModal";
 import { ActionModal } from "../../../../../../../components/ActionModal";
 import { useState } from "react";
+import { Users } from "../../../../../../../models/user";
 
 interface Props {
   project: Project;
@@ -57,21 +58,23 @@ export default function IndexPage(props: Props) {
     let jsonExports: Promise<void>[] = [];
 
     setExportingModalOpen(true);
+    const creators = await Users.all(collection.userGroupId);
 
     for (let i = 0; i < composites.length; i++) {
       const composite = composites[i];
 
       const jsonExport = new Promise<void>((resolve, reject) => {
         setTimeout(() => {
-          setExportingItem(i);
           CandyMachine.exportItem(
             i,
             project,
+            creators,
             collection,
             compositeGroupId,
             composite
           )
             .then((isSuccessful) => {
+              setExportingItem(i);
               console.log(
                 "Export of " +
                   i +
@@ -89,7 +92,7 @@ export default function IndexPage(props: Props) {
               console.log(e);
               reject();
             });
-        }, i * 100);
+        }, i * 200);
       });
 
       jsonExports.push(jsonExport);
