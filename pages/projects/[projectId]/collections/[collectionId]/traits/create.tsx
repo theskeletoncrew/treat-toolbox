@@ -36,11 +36,14 @@ export default function CreatePage(props: Props) {
     const zIndex = zIndexStr ? parseInt(zIndexStr) : 0;
 
     const isMetadataOnly = data.get("isMetadataOnly")?.toString() == "1";
+    const excludeFromDuplicateDetection =
+      data.get("excludeFromDuplicateDetection")?.toString() == "1";
 
     const trait = {
       name: name,
       zIndex: zIndex,
       isMetadataOnly: isMetadataOnly,
+      excludeFromDuplicateDetection: excludeFromDuplicateDetection,
     } as Trait;
 
     await Traits.create(trait, projectId, collection.id);
@@ -130,6 +133,27 @@ export default function CreatePage(props: Props) {
                       <p className="text-xs text-gray-600 mt-2">
                         Check this box if this is a trait with no associated
                         artwork (ex. a name)
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="checkbox"
+                        name="excludeFromDuplicateDetection"
+                        id="excludeFromDuplicateDetection"
+                        className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                        value="1"
+                      />
+                      <label
+                        htmlFor="excludeFromDuplicateDetection"
+                        className="inline-block text-sm font-medium"
+                      >
+                        Exclude from duplicate detection?
+                      </label>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Check this box if this is a trait that should not be
+                        included when determining uniqueness when detecting
+                        duplicates (ex. background colour)
                       </p>
                     </div>
                   </div>

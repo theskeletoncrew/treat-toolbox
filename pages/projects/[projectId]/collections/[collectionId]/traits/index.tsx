@@ -186,6 +186,12 @@ export default function IndexPage(props: Props) {
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Exclude from duplicate detection?
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           ></th>
                         </tr>
                       </thead>
@@ -232,6 +238,13 @@ export default function IndexPage(props: Props) {
                               <td className="px-6 py-4" width="100">
                                 <div className="text-sm text-gray-500 overflow-ellipsis">
                                   {trait?.isMetadataOnly ? "yes" : "no"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4" width="100">
+                                <div className="text-sm text-gray-500 overflow-ellipsis">
+                                  {trait?.excludeFromDuplicateDetection
+                                    ? "yes"
+                                    : "no"}
                                 </div>
                               </td>
                               <td align="right" width="100">
