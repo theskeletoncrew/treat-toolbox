@@ -19,6 +19,7 @@ export interface Trait {
   name: string;
   zIndex: number;
   isMetadataOnly: boolean;
+  excludeFromDuplicateDetection: boolean;
 }
 
 export interface TraitValue {
@@ -130,7 +131,11 @@ export namespace ImageComposites {
         return zIndexA < zIndexB ? -1 : zIndexA == zIndexB ? 0 : 1;
       })
       .reduce(function (result, traitPair) {
-        if (traitPair.trait.isMetadataOnly || traitPair.traitValue == null) {
+        if (
+          traitPair.trait.isMetadataOnly ||
+          traitPair.trait.excludeFromDuplicateDetection ||
+          traitPair.traitValue == null
+        ) {
           return result;
         }
 

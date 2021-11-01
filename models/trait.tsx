@@ -19,6 +19,7 @@ export default interface Trait {
   name: string;
   zIndex: number;
   isMetadataOnly: boolean;
+  excludeFromDuplicateDetection: boolean;
 }
 
 export namespace Traits {
