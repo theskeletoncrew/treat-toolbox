@@ -35,7 +35,7 @@ export default function IndexPage(props: Props) {
   const userGroupId = props.userGroupId;
 
   const [exportingModalOpen, setExportingModalOpen] = useState(false);
-  const exportingTotal = collection.supply;
+  const exportingTotal = composites.length;
 
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [downloadURL, setDownloadURL] = useState("");

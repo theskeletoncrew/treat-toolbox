@@ -2,6 +2,7 @@ import { logger } from "firebase-functions";
 import { v4 as uuidv4 } from "uuid";
 import {
   Collections,
+  ImageComposite,
   ImageComposites,
   Projects,
   Users,
@@ -80,12 +81,10 @@ export class CandyMachineDownloader {
       orderNumber++
     ) {
       const randomCompositeNumber = shuffledIndexes[orderNumber];
-      const compositeDownloadPath = this.pathForComposite(
-        randomCompositeNumber
-      );
-      const compositeFilename = orderNumber + ".png";
-
       const composite = composites[randomCompositeNumber];
+
+      const compositeDownloadPath = this.pathForComposite(composite);
+      const compositeFilename = orderNumber + ".png";
 
       // create metadata json file
       const isSuccessful = await CandyMachine.exportItem(
@@ -144,7 +143,9 @@ export class CandyMachineDownloader {
     return promise;
   }
 
-  pathForComposite(itemIndex: number): string {
+  pathForComposite(composite: ImageComposite): string {
+    const generatedFilename = composite.externalURL?.split("/").pop();
+
     const compositeFilePath =
       this.projectId +
       "/" +
@@ -152,8 +153,7 @@ export class CandyMachineDownloader {
       "/generated/" +
       this.compositeGroupId +
       "/" +
-      itemIndex +
-      ".png";
+      generatedFilename;
 
     return compositeFilePath;
   }
