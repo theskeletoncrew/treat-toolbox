@@ -1,0 +1,13 @@
+Here's a list of common things to rule out when troubleshooting issues:
+- first, make sure you have carefully followed all steps in the README.
+- are you up to date on the latest git commit?
+- have you run npm install and npm build --prefix functions since the last time you pulled from git?
+- have you setup your .env file as described in the readme including the functions API endpoint?
+- is one and only one instance of your emulator running (on the ports expected)?
+- have you created a user group in treat toolbox?
+- have you setup traits, values for each trait, and artwork, and mapped each piece of artwork to a trait and trait value?
+- are the rarities of your trait values set between 0 and 1?
+- do you have enough trait values setup so that multiplying the number of trait values together for each trait exceeds your requested supply? (ideally *significantly* exceeds to account for things like conflict resolution)
+- are your art files all PNGs?
+- do you have adequate disk space to generate lots of PNGs?
+- what version of java are you running? (on mac have you tried OpenJDK through homebrew?
