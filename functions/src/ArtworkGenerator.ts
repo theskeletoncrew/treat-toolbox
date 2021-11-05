@@ -39,7 +39,7 @@ export class ArtworkGenerator {
     projectId: string,
     collectionId: string,
     compositeGroupId: string,
-    traitSetId: string | null,
+    traitSetId: string,
     startIndex: number,
     endIndex: number,
     batchSize: number,
@@ -48,7 +48,7 @@ export class ArtworkGenerator {
     this.projectId = projectId;
     this.collectionId = collectionId;
     this.compositeGroupId = compositeGroupId;
-    this.traitSetId = traitSetId;
+    this.traitSetId = traitSetId == "-1" ? null : traitSetId;
     this.startIndex = startIndex;
     this.endIndex = endIndex;
     this.batchSize = batchSize;

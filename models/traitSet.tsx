@@ -64,7 +64,7 @@ export namespace TraitSets {
     const allTraits = await Traits.all(projectId, collection.id);
 
     return {
-      id: "<DEFAULT>",
+      id: "-1",
       name: "Default",
       supply: collection.supply,
     } as TraitSet;
