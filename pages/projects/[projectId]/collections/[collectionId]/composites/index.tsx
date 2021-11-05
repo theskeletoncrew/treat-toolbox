@@ -2,33 +2,27 @@ import Layout from "../../../../../../components/Layout";
 import DropsSubnav from "../../../../../../components/DropsSubnav";
 import { EmptyState } from "../../../../../../components/EmptyState";
 import Link from "next/dist/client/link";
-import {
-  TrashIcon,
-  PencilAltIcon,
-  DocumentAddIcon,
-} from "@heroicons/react/outline";
+import { TrashIcon, DocumentAddIcon } from "@heroicons/react/outline";
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
 import ImageCompositeGroup, {
   ImageCompositeGroups,
 } from "../../../../../../models/imageCompositeGroup";
-import ImageComposite, {
-  ImageComposites,
-} from "../../../../../../models/imageComposite";
-import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
+import { ImageComposites } from "../../../../../../models/imageComposite";
+import { TraitSets } from "../../../../../../models/traitSet";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
 import { ProgressModal } from "../../../../../../components/ProgressModal";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { API } from "../../../../../../models/api";
-import { collectionGroup } from "@firebase/firestore";
 
 interface Props {
   project: Project;
   projects: Project[];
   collection: Collection;
   compositeGroups: ImageCompositeGroup[];
+  compositesCountDict: { [compositeGroupId: string]: number };
   projectId: string;
 }
 
@@ -37,6 +31,7 @@ export default function IndexPage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const compositeGroups = props.compositeGroups;
+  const compositesCountDict = props.compositesCountDict;
   const projectId = props.projectId;
 
   const BATCH_SIZE = 100;
@@ -258,6 +253,12 @@ export default function IndexPage(props: Props) {
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Total Composites
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           ></th>
                         </tr>
                       </thead>
@@ -279,6 +280,11 @@ export default function IndexPage(props: Props) {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
                                   {compositeGroup?.id ?? "Unknown"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {compositesCountDict[compositeGroup.id]}
                                 </div>
                               </td>
                               <td align="right" width="100">
@@ -366,12 +372,24 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         collectionId
       );
 
+      let compositesCountDict: { [compositeGroupId: string]: number } = {};
+      for (let i = 0; i < compositeGroups.length; i++) {
+        const compositeGroupId = compositeGroups[i].id;
+        const composites = await ImageComposites.all(
+          projectId,
+          collectionId,
+          compositeGroupId
+        );
+        compositesCountDict[compositeGroupId] = composites.length;
+      }
+
       return {
         props: {
           project: project,
           projects: projects,
           collection: collection,
           compositeGroups: compositeGroups,
+          compositesCountDict: compositesCountDict,
           projectId: projectId,
         },
       };
