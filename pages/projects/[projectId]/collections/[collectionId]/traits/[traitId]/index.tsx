@@ -261,7 +261,7 @@ export default function IndexPage(props: Props) {
             </div>
 
             <div className="mb-4">
-              {trait.isMetadataOnly ? (
+              {trait.isAlwaysUnique ? (
                 trait.name
               ) : (
                 <h1>
@@ -330,7 +330,7 @@ export default function IndexPage(props: Props) {
                                   </div>
                                 </td>
 
-                                {trait.isMetadataOnly ? (
+                                {trait.isAlwaysUnique ? (
                                   ""
                                 ) : (
                                   <td className="px-6 py-4">

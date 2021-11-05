@@ -1,9 +1,5 @@
-import Collection from "./collection";
-import Project from "./project";
-import ImageComposite from "./imageComposite";
-import User from "./user";
-import { storage } from "../app-firebase";
-import { ref, uploadString } from "firebase/storage";
+import { Collection, Project, ImageComposite, User } from "./models";
+import { storage } from "../models/firebase";
 
 interface CandyMachineItem {
   name: string;
@@ -45,7 +41,7 @@ interface CreatorItem {
 
 export namespace CandyMachine {
   export function exportItem(
-    itemNumber: number,
+    orderNumber: number,
     project: Project,
     creators: User[],
     collection: Collection,
@@ -53,8 +49,10 @@ export namespace CandyMachine {
     imageComposite: ImageComposite | null
   ): Promise<Boolean> {
     return new Promise<Boolean>((resolve, reject) => {
+      console.log("constructing item " + orderNumber);
+
       const item = constructCandyMachineItem(
-        itemNumber,
+        orderNumber,
         project,
         creators,
         collection,
@@ -63,35 +61,37 @@ export namespace CandyMachine {
 
       const itemJSON = JSON.stringify(item, null, 4);
 
-      const storageRef = ref(
-        storage,
-        project.id +
-          "/" +
-          collection.id +
-          "/generated/" +
-          compositeGroupId +
-          "/" +
-          itemNumber +
-          ".json"
-      );
-
-      uploadString(storageRef, itemJSON)
+      storage
+        .bucket()
+        .file(
+          project.id +
+            "/" +
+            collection.id +
+            "/generated/" +
+            compositeGroupId +
+            "/" +
+            orderNumber +
+            ".json"
+        )
+        .save(itemJSON)
         .then(
           (snapshot) => {
             resolve(true);
           },
           (e) => {
+            console.log("uploading exception: " + e);
             reject(e);
           }
         )
         .catch((e) => {
+          console.log("uploading exception: " + e);
           reject(e);
         });
     });
   }
 
   function constructCandyMachineItem(
-    itemNumber: number,
+    orderNumber: number,
     project: Project,
     creators: User[],
     collection: Collection,
@@ -105,10 +105,10 @@ export namespace CandyMachine {
         } as TraitValuePair;
       }) ?? [];
 
-    const humanReadableItemNumber = itemNumber + 1;
+    const humanReadableOrderNumber = orderNumber + 1;
 
     return {
-      name: collection.symbol + " #" + humanReadableItemNumber, // shift for 0 index
+      name: collection.symbol + " #" + humanReadableOrderNumber, // shift for 0 index
       symbol: collection.symbol,
       description: project.description,
       seller_fee_basis_points: collection.sellerFeeBasisPoints,
@@ -117,8 +117,8 @@ export namespace CandyMachine {
         "/" +
         collection.symbol.toLowerCase() +
         "/" +
-        humanReadableItemNumber,
-      image: itemNumber + ".png",
+        humanReadableOrderNumber,
+      image: orderNumber + ".png",
       attributes: attributes,
       collection: {
         name: collection.name,
@@ -128,7 +128,7 @@ export namespace CandyMachine {
         category: "image",
         files: [
           {
-            uri: itemNumber + ".png",
+            uri: orderNumber + ".png",
             type: "image/png",
           } as FileItem,
         ],

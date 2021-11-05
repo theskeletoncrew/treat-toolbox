@@ -12,6 +12,7 @@ import Collection, { Collections } from "../../../../../../models/collection";
 import Conflict, { Conflicts } from "../../../../../../models/conflict";
 import Trait, { Traits } from "../../../../../../models/trait";
 import TraitValue, { TraitValues } from "../../../../../../models/traitValue";
+import { ConflictResolutionType } from "../../../../../../models/conflict";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
 import { useState } from "react";
@@ -204,110 +205,129 @@ export default function IndexPage(props: Props) {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {conflicts.map((conflict) => (
-                          <Link
-                            key={conflict.id}
-                            href={
-                              "/projects/" +
-                              project.id +
-                              "/collections/" +
-                              collection.id +
-                              "/conflicts/" +
-                              conflict.id
-                            }
-                            passHref={true}
-                          >
-                            <tr
+                        {conflicts.map((conflict) => {
+                          let conflictResolutionValue = "";
+
+                          switch (conflict.resolutionType) {
+                            case ConflictResolutionType.Trait1None:
+                              conflictResolutionValue = "Set Trait 1 to None";
+                              break;
+                            case ConflictResolutionType.Trait2None:
+                              conflictResolutionValue = "Set Trait 2 to None";
+                              break;
+                            case ConflictResolutionType.Trait1Random:
+                              conflictResolutionValue =
+                                "Choose a new random value for Trait 1";
+                              break;
+                            case ConflictResolutionType.Trait2Random:
+                              conflictResolutionValue =
+                                "Choose a new random value for Trait 2";
+                              break;
+                          }
+
+                          return (
+                            <Link
                               key={conflict.id}
-                              className="hover:bg-gray-100 cursor-pointer"
+                              href={
+                                "/projects/" +
+                                project.id +
+                                "/collections/" +
+                                collection.id +
+                                "/conflicts/" +
+                                conflict.id
+                              }
+                              passHref={true}
                             >
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-900">
-                                  {conflict?.trait1Id
-                                    ? traits.find((trait) => {
-                                        return trait.id == conflict?.trait1Id;
-                                      })?.name
-                                    : ""}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {conflict?.trait1ValueId
-                                    ? traitValues.find((traitValue) => {
-                                        return (
-                                          traitValue.id ==
-                                          conflict?.trait1ValueId
-                                        );
-                                      })?.name ?? "Any"
-                                    : "Any"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {conflict?.trait2Id
-                                    ? traits.find((trait) => {
-                                        return trait.id == conflict?.trait2Id;
-                                      })?.name
-                                    : ""}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {conflict?.trait2ValueId
-                                    ? traitValues.find((traitValue) => {
-                                        return (
-                                          traitValue.id ==
-                                          conflict?.trait2ValueId
-                                        );
-                                      })?.name ?? "Any"
-                                    : "Any"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {conflict?.resolutionType == 0
-                                    ? "Drop 2"
-                                    : "Drop 1"}
-                                </div>
-                              </td>
-                              <td align="right" width="100">
-                                <Link
-                                  href={
-                                    "/projects/" +
-                                    project.id +
-                                    "/collections/" +
-                                    collection.id +
-                                    "/conflicts/" +
-                                    conflict.id
-                                  }
-                                  passHref={true}
-                                >
+                              <tr
+                                key={conflict.id}
+                                className="hover:bg-gray-100 cursor-pointer"
+                              >
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-900">
+                                    {conflict?.trait1Id
+                                      ? traits.find((trait) => {
+                                          return trait.id == conflict?.trait1Id;
+                                        })?.name
+                                      : ""}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-500 overflow-ellipsis">
+                                    {conflict?.trait1ValueId
+                                      ? traitValues.find((traitValue) => {
+                                          return (
+                                            traitValue.id ==
+                                            conflict?.trait1ValueId
+                                          );
+                                        })?.name ?? "Any"
+                                      : "Any"}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-500 overflow-ellipsis">
+                                    {conflict?.trait2Id
+                                      ? traits.find((trait) => {
+                                          return trait.id == conflict?.trait2Id;
+                                        })?.name
+                                      : ""}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-500 overflow-ellipsis">
+                                    {conflict?.trait2ValueId
+                                      ? traitValues.find((traitValue) => {
+                                          return (
+                                            traitValue.id ==
+                                            conflict?.trait2ValueId
+                                          );
+                                        })?.name ?? "Any"
+                                      : "Any"}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-500 overflow-ellipsis">
+                                    {conflictResolutionValue}
+                                  </div>
+                                </td>
+                                <td align="right" width="100">
+                                  <Link
+                                    href={
+                                      "/projects/" +
+                                      project.id +
+                                      "/collections/" +
+                                      collection.id +
+                                      "/conflicts/" +
+                                      conflict.id
+                                    }
+                                    passHref={true}
+                                  >
+                                    <a
+                                      href="#"
+                                      className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
+                                    >
+                                      <PencilAltIcon
+                                        className="h-5 w-5 text-gray-400"
+                                        aria-hidden="true"
+                                      />
+                                    </a>
+                                  </Link>
                                   <a
                                     href="#"
+                                    onClick={(e) =>
+                                      confirmDeleteConflict(e, conflict.id)
+                                    }
                                     className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
                                   >
-                                    <PencilAltIcon
+                                    <TrashIcon
                                       className="h-5 w-5 text-gray-400"
                                       aria-hidden="true"
                                     />
                                   </a>
-                                </Link>
-                                <a
-                                  href="#"
-                                  onClick={(e) =>
-                                    confirmDeleteConflict(e, conflict.id)
-                                  }
-                                  className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
-                                >
-                                  <TrashIcon
-                                    className="h-5 w-5 text-gray-400"
-                                    aria-hidden="true"
-                                  />
-                                </a>
-                              </td>
-                            </tr>
-                          </Link>
-                        ))}
+                                </td>
+                              </tr>
+                            </Link>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

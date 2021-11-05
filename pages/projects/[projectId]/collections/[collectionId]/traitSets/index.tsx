@@ -6,12 +6,11 @@ import {
   TrashIcon,
   PencilAltIcon,
   DocumentAddIcon,
-  DuplicateIcon,
 } from "@heroicons/react/outline";
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
 import Trait, { Traits } from "../../../../../../models/trait";
-import TraitValue, { TraitValues } from "../../../../../../models/traitValue";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
 import { useState } from "react";
@@ -21,8 +20,8 @@ interface Props {
   project: Project;
   projects: Project[];
   collection: Collection;
+  traitSets: TraitSet[];
   traits: Trait[];
-  traitValues: { [key: string]: TraitValue[] };
   projectId: string;
 }
 
@@ -30,74 +29,41 @@ export default function IndexPage(props: Props) {
   const project = props.project;
   const projects = props.projects;
   const collection = props.collection;
+  const traitSets = props.traitSets ?? [];
   const traits = props.traits;
-  const traitValues = props.traitValues;
   const projectId = props.projectId;
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [traitIdToDelete, setTraitIdToDelete] = useState<string | null>(null);
+  const [traitSetIdToDelete, setTraitSetIdToDelete] = useState<string | null>(
+    null
+  );
 
   const router = useRouter();
 
-  const confirmDeleteTrait = (event: React.MouseEvent, traitId: string) => {
+  const confirmDeleteTraitSet = (event: React.MouseEvent, traitId: string) => {
     event.preventDefault();
-    setTraitIdToDelete(traitId);
+    setTraitSetIdToDelete(traitId);
     setDeleteModalOpen(true);
   };
 
-  const deleteTrait = async () => {
-    if (traitIdToDelete) {
-      await Traits.remove(traitIdToDelete, projectId, collection.id);
+  const deleteTraitSet = async () => {
+    if (traitSetIdToDelete) {
+      await TraitSets.remove(traitSetIdToDelete, projectId, collection.id);
     }
-    setTraitIdToDelete(null);
+    setTraitSetIdToDelete(null);
     setDeleteModalOpen(false);
     router.reload();
   };
 
-  const cancelDeleteTrait = async () => {
-    setTraitIdToDelete(null);
+  const cancelDeleteTraitSet = async () => {
+    setTraitSetIdToDelete(null);
     setDeleteModalOpen(false);
   };
 
-  const duplicateTrait = async (event: React.MouseEvent, traitId: string) => {
-    event.preventDefault();
-    const trait = traits.find((trait) => trait.id == traitId);
-    if (trait) {
-      const duplicateTrait = await Traits.create(
-        trait,
-        projectId,
-        collection.id
-      );
-
-      const traitValues = await TraitValues.all(
-        projectId,
-        collection.id,
-        traitId
-      );
-
-      const promises: Promise<TraitValue>[] = [];
-
-      traitValues.forEach((traitValue) => {
-        promises.push(
-          TraitValues.create(
-            traitValue,
-            projectId,
-            collection.id,
-            duplicateTrait.id
-          )
-        );
-      });
-
-      Promise.all(promises).then(() => {
-        router.reload();
-      });
-    }
-  };
-
-  if (!traits) {
+  if (!traitSets) {
     return (
       <Layout
-        title="Traits"
+        title="Trait Sets"
         section="collections"
         projects={projects}
         selectedProjectId={projectId}
@@ -105,17 +71,17 @@ export default function IndexPage(props: Props) {
         <DropsSubnav
           project={project}
           collection={collection}
-          section="traits"
+          section="traitSets"
         />
         <main className="px-8 py-12">
           <p>Not Found</p>
         </main>
       </Layout>
     );
-  } else if (traits.length == 0) {
+  } else if (traitSets.length == 0) {
     return (
       <Layout
-        title="Traits"
+        title="Trait Sets"
         section="collections"
         projects={projects}
         selectedProjectId={undefined}
@@ -123,7 +89,7 @@ export default function IndexPage(props: Props) {
         <DropsSubnav
           project={project}
           collection={collection}
-          section="traits"
+          section="traitSets"
         />
         <main className="px-8 py-12">
           <Link
@@ -132,15 +98,15 @@ export default function IndexPage(props: Props) {
               project.id +
               "/collections/" +
               collection.id +
-              "/traits/create"
+              "/traitSets/create"
             }
             passHref={true}
           >
             <button type="button" className="block w-full">
               <EmptyState
-                title="No traits"
-                message="Create your first trait."
-                buttonTitle="New Trait"
+                title="No traits sets"
+                message="Create a trait set."
+                buttonTitle="New Trait Set"
               />
             </button>
           </Link>
@@ -150,7 +116,7 @@ export default function IndexPage(props: Props) {
   } else {
     return (
       <Layout
-        title="Traits"
+        title="Trait Sets"
         section="collections"
         projects={projects}
         selectedProjectId={projectId}
@@ -159,7 +125,7 @@ export default function IndexPage(props: Props) {
           <DropsSubnav
             project={project}
             collection={collection}
-            section="traits"
+            section="traitSets"
           />
           <main>
             <div className="mt-4 mr-8 float-right">
@@ -170,7 +136,7 @@ export default function IndexPage(props: Props) {
                     project.id +
                     "/collections/" +
                     collection.id +
-                    "/traits/create"
+                    "/traitSets/create"
                   }
                   passHref={true}
                 >
@@ -182,7 +148,7 @@ export default function IndexPage(props: Props) {
                       className="-ml-1 mr-1 h-5 w-5"
                       aria-hidden="true"
                     />
-                    Add Trait
+                    Add Trait Set
                   </button>
                 </Link>
               </span>
@@ -205,43 +171,7 @@ export default function IndexPage(props: Props) {
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            Values
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Layer
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Trait Sets
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Values Rarity Sum
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Always Unique
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Metadata Only
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Exclude from duplicate detection
+                            Supply
                           </th>
                           <th
                             scope="col"
@@ -250,79 +180,32 @@ export default function IndexPage(props: Props) {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {traits.map((trait) => (
+                        {traitSets.map((traitSet) => (
                           <Link
-                            key={trait.id}
+                            key={traitSet.id}
                             href={
                               "/projects/" +
                               project.id +
                               "/collections/" +
                               collection.id +
-                              "/traits/" +
-                              trait.id
+                              "/traitSets/" +
+                              traitSet.id +
+                              "/edit"
                             }
                             passHref={true}
                           >
                             <tr
-                              key={trait.id}
+                              key={traitSet.id}
                               className="hover:bg-gray-100 cursor-pointer"
                             >
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
-                                  {trait?.name || "Unknown"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  [{traitValues[trait.id].length}]{" "}
-                                  {traitValues[trait.id]
-                                    .slice(0, 20)
-                                    .flatMap((value) => value.name)
-                                    .join(", ")}
-                                  {traitValues[trait.id].length > 20
-                                    ? "..."
-                                    : ""}
+                                  {traitSet?.name || "Unknown"}
                                 </div>
                               </td>
                               <td className="px-6 py-4" width="100">
                                 <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {trait?.zIndex || "0"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4" width="100">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {trait?.traitSetIds?.length || "0"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4" width="100">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {Number(
-                                    100 *
-                                      traitValues[trait.id].reduce(
-                                        (result, traitValue) => {
-                                          return result + traitValue.rarity;
-                                        },
-                                        0
-                                      )
-                                  ).toFixed(2)}
-                                  %
-                                </div>
-                              </td>
-                              <td className="px-6 py-4" width="100">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {trait?.isAlwaysUnique ? "yes" : "no"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4" width="100">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {trait?.isMetadataOnly ? "yes" : "no"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4" width="100">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {trait?.excludeFromDuplicateDetection
-                                    ? "yes"
-                                    : "no"}
+                                  {traitSet.supply || "0"}
                                 </div>
                               </td>
                               <td align="right" width="100">
@@ -332,8 +215,8 @@ export default function IndexPage(props: Props) {
                                     project.id +
                                     "/collections/" +
                                     collection.id +
-                                    "/traits/" +
-                                    trait.id +
+                                    "/traitSets/" +
+                                    traitSet.id +
                                     "/edit"
                                   }
                                   passHref={true}
@@ -350,18 +233,8 @@ export default function IndexPage(props: Props) {
                                 </Link>
                                 <a
                                   href="#"
-                                  onClick={(e) => duplicateTrait(e, trait.id)}
-                                  className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
-                                >
-                                  <DuplicateIcon
-                                    className="h-5 w-5 text-gray-400"
-                                    aria-hidden="true"
-                                  />
-                                </a>
-                                <a
-                                  href="#"
                                   onClick={(e) =>
-                                    confirmDeleteTrait(e, trait.id)
+                                    confirmDeleteTraitSet(e, traitSet.id)
                                   }
                                   className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
                                 >
@@ -386,15 +259,15 @@ export default function IndexPage(props: Props) {
             title="Delete Trait"
             message={
               "Are you sure you want to delete ‘" +
-              (traits.find((trait) => trait.id == traitIdToDelete)?.name ??
-                "Unknown") +
-              "’? This will remove all data associated with this trait, including all trait values. This action cannot be undone."
+              (traitSets.find((traitSet) => traitSet.id == traitSetIdToDelete)
+                ?.name ?? "Unknown") +
+              "’? This will remove all data associated with this trait set. This action cannot be undone."
             }
             deleteAction={() => {
-              deleteTrait();
+              deleteTraitSet();
             }}
             cancelAction={() => {
-              cancelDeleteTrait();
+              cancelDeleteTraitSet();
             }}
             show={deleteModalOpen}
           />
@@ -412,38 +285,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (projectId && collectionId) {
       const projects = await Projects.all();
       const collection = await Collections.withId(collectionId, projectId);
+      const traitSets = await TraitSets.all(projectId, collectionId);
       const traits = await Traits.all(projectId, collectionId);
       const project = projects.find((project) => project.id == projectId);
-
-      // fetch values in each trait
-      const results = await Promise.all(
-        traits.map(async (trait) => {
-          const values = await TraitValues.all(
-            projectId,
-            collectionId,
-            trait.id
-          );
-          return {
-            traitId: trait.id,
-            values: values,
-          };
-        })
-      );
-
-      // convert to a keyed dictionary {groupId : users}
-      const traitValues: { [key: string]: TraitValue[] } = {};
-      results.forEach((result) => {
-        const key = result.traitId;
-        traitValues[key] = result.values;
-      });
 
       return {
         props: {
           project: project,
           projects: projects,
           collection: collection,
+          traitSets: traitSets,
           traits: traits,
-          traitValues: traitValues,
           projectId: projectId,
         },
       };

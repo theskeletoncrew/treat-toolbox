@@ -18,10 +18,10 @@ export default interface ImageCompositeGroup {
 export namespace ImageCompositeGroups {
   export const FB_COLLECTION_NAME = "compositeGroups";
 
-  export const all = async (
+  export async function all(
     projectId: string,
     collectionId: string
-  ): Promise<Array<any>> => {
+  ): Promise<Array<any>> {
     const compositesQuery = query(
       collection(
         db,
@@ -46,13 +46,13 @@ export namespace ImageCompositeGroups {
     });
 
     return composites;
-  };
+  }
 
-  export const withId = async (
+  export async function withId(
     groupId: string,
     projectId: string,
     collectionId: string
-  ): Promise<ImageCompositeGroup> => {
+  ): Promise<ImageCompositeGroup> {
     const groupDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -74,13 +74,13 @@ export namespace ImageCompositeGroups {
     group.id = groupDoc.id;
 
     return group;
-  };
+  }
 
-  export const create = async (
+  export async function create(
     imageCompositeGroup: ImageCompositeGroup,
     projectId: string,
     collectionId: string
-  ): Promise<ImageCompositeGroup> => {
+  ): Promise<ImageCompositeGroup> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -101,13 +101,13 @@ export namespace ImageCompositeGroups {
     return {
       ...imageCompositeGroup,
     } as ImageCompositeGroup;
-  };
+  }
 
-  export const remove = async (
+  export async function remove(
     id: string,
     projectId: string,
     collectionId: string
-  ) => {
+  ) {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -123,5 +123,5 @@ export namespace ImageCompositeGroups {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 }

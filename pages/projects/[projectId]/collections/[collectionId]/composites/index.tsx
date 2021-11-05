@@ -15,6 +15,7 @@ import ImageCompositeGroup, {
 import ImageComposite, {
   ImageComposites,
 } from "../../../../../../models/imageComposite";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
 import { ProgressModal } from "../../../../../../components/ProgressModal";
@@ -42,8 +43,14 @@ export default function IndexPage(props: Props) {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [generatingModalOpen, setGeneratingModalOpen] = useState(false);
-  const [generatingBatch, setGeneratingBatch] = useState(0);
-  const generatingTotal = collection.supply;
+  const [isGeneratingCancelled, setIsGeneratingCancelled] = useState(false);
+
+  const [generatingTraitSetName, setGeneratingTraitSetName] = useState("");
+  const [generatingTraitSetSize, setGeneratingTraitSetSize] = useState(0);
+
+  const [traitSetGeneratedItems, setTraitSetGeneratedItems] = useState(0);
+  const [totalGeneratedItems, setTotalGeneratedItems] = useState(0);
+
   const [compositeGroupIdToDelete, setCompositeGroupIdToDelete] = useState<
     string | null
   >(null);
@@ -81,6 +88,7 @@ export default function IndexPage(props: Props) {
     let batchNum = 0;
     let totalCreated = 0;
 
+    setIsGeneratingCancelled(false);
     setGeneratingModalOpen(true);
 
     const compositeGroup = await ImageCompositeGroups.create(
@@ -89,49 +97,74 @@ export default function IndexPage(props: Props) {
       collection.id
     );
 
-    let compositeIdsToCompositeHashes: { [key: string]: string } = {};
+    let traitSets = await TraitSets.all(projectId, collection.id);
+    if (traitSets.length == 0) {
+      const defaultTraitSet = await TraitSets.defaultTraitSet(
+        projectId,
+        collection
+      );
+      traitSets = [defaultTraitSet];
+    }
 
-    const maxBatchNum = Math.floor(collection.supply / BATCH_SIZE);
+    for (let i = 0; i < traitSets.length && !isGeneratingCancelled; i++) {
+      const traitSet = traitSets[i];
+      let traitSetCreated = 0;
 
-    while (collection.supply > totalCreated) {
-      setGeneratingBatch(Math.min(batchNum, maxBatchNum));
+      setGeneratingTraitSetName(traitSet.name);
+      setGeneratingTraitSetSize(traitSet.supply);
 
-      const newComposites = await fetch(
-        API.ENDPOINT +
-          "/generate-artwork?projectId=" +
-          projectId +
-          "&collectionId=" +
-          collection.id +
-          "&compositeGroupId=" +
-          compositeGroup.id +
-          "&batchNum=" +
-          batchNum +
-          "&batchSize=" +
-          BATCH_SIZE,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
+      while (
+        traitSet.supply > traitSetCreated &&
+        collection.supply > totalCreated &&
+        !isGeneratingCancelled
+      ) {
+        setTraitSetGeneratedItems(traitSetCreated);
+        setTotalGeneratedItems(totalCreated);
+
+        const maxTraitSetBatchSize = traitSet.supply - traitSetCreated;
+        const batchSize = Math.min(BATCH_SIZE, maxTraitSetBatchSize);
+
+        const newComposites = await fetch(
+          API.ENDPOINT +
+            "/generate-artwork?projectId=" +
+            projectId +
+            "&collectionId=" +
+            collection.id +
+            "&compositeGroupId=" +
+            compositeGroup.id +
+            "&traitSetId=" +
+            traitSet.id +
+            "&startIndex=" +
+            totalCreated +
+            "&batchSize=" +
+            batchSize +
+            "&isFirstBatchInTraitSet=" +
+            (traitSetCreated == 0 ? "1" : "0"),
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
           }
-          return response.json();
-        })
-        .then((json) => {
-          console.log(json);
-          return json;
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
+        )
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((json) => {
+            console.log(json);
+            return json;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
 
-      batchNum += 1;
-      totalCreated = batchNum * BATCH_SIZE;
+        traitSetCreated += batchSize;
+        totalCreated += batchSize;
+      }
     }
 
     console.log("art generation complete");
@@ -155,8 +188,8 @@ export default function IndexPage(props: Props) {
   };
 
   function cancelGenerateCompositeGroup() {
-    // TODO: truly cancel the generating task
-    // right now we just hide the progress modal
+    console.log("Generating cancelled");
+    setIsGeneratingCancelled(true);
     setGeneratingModalOpen(false);
   }
 
@@ -298,14 +331,16 @@ export default function IndexPage(props: Props) {
         <ProgressModal
           title="Generating Composite Group"
           message={
-            BATCH_SIZE * generatingBatch +
+            generatingTraitSetName +
+            ":" +
+            traitSetGeneratedItems +
             "-" +
-            Math.min(BATCH_SIZE * (generatingBatch + 1), collection.supply) +
+            generatingTraitSetSize +
             " of " +
-            generatingTotal
+            collection.supply
           }
           loadingPercent={Math.ceil(
-            (100 * (BATCH_SIZE * generatingBatch)) / generatingTotal
+            (100 * totalGeneratedItems) / collection.supply
           )}
           cancelAction={() => {
             cancelGenerateCompositeGroup();

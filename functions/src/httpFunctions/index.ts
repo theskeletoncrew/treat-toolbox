@@ -10,8 +10,12 @@ api.get("/generate-artwork", (req, res) => {
   const projectId = req.query.projectId?.toString();
   const collectionId = req.query.collectionId?.toString();
   const compositeGroupId = req.query.compositeGroupId?.toString();
-  const batchNum = parseInt(req.query.batchNum?.toString() ?? "0");
+  const traitSetId = req.query.traitSetId?.toString() ?? null;
+  const startIndex = parseInt(req.query.startIndex?.toString() ?? "0");
   const batchSize = parseInt(req.query.batchSize?.toString() ?? "500");
+  const isFirstBatchInTraitSet =
+    (req.query.isFirstBatchInTraitSet?.toString() ?? "0") == "1";
+  const endIndex = startIndex + batchSize;
 
   if (!projectId || !collectionId || !compositeGroupId) {
     res.status(400).send();
@@ -22,8 +26,11 @@ api.get("/generate-artwork", (req, res) => {
     projectId,
     collectionId,
     compositeGroupId,
-    batchNum,
-    batchSize
+    traitSetId,
+    startIndex,
+    endIndex,
+    batchSize,
+    isFirstBatchInTraitSet
   );
   artworkGenerator
     .generate()
@@ -41,8 +48,9 @@ api.get("/download-archive", (req, res) => {
   const projectId = req.query.projectId?.toString();
   const collectionId = req.query.collectionId?.toString();
   const compositeGroupId = req.query.compositeGroupId?.toString();
+  const userGroupId = req.query.userGroupId?.toString();
 
-  if (!projectId || !collectionId || !compositeGroupId) {
+  if (!projectId || !collectionId || !compositeGroupId || !userGroupId) {
     res.status(400).send();
     return;
   }
@@ -50,7 +58,8 @@ api.get("/download-archive", (req, res) => {
   const downloader = new CandyMachineDownloader(
     projectId,
     collectionId,
-    compositeGroupId
+    compositeGroupId,
+    userGroupId
   );
   downloader
     .download()

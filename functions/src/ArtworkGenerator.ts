@@ -1,11 +1,15 @@
-import { DocumentSnapshot } from "firebase-functions/v1/firestore";
 import { logger } from "firebase-functions";
-import { db, storage } from "../models/firebase";
+import { storage } from "../models/firebase";
 import {
   Collection,
+  Collections,
+  Conflicts,
   Trait,
+  Traits,
   TraitValue,
+  TraitValues,
   ImageLayer,
+  ImageLayers,
   OrderedImageLayer,
   TraitValuePair,
   ImageComposite,
@@ -25,21 +29,30 @@ export class ArtworkGenerator {
   projectId: string;
   collectionId: string;
   compositeGroupId: string;
-  batchNum: number;
+  traitSetId: string | null;
+  startIndex: number;
+  endIndex: number;
   batchSize: number;
+  isFirstBatchInTraitSet: boolean;
 
   constructor(
     projectId: string,
     collectionId: string,
     compositeGroupId: string,
-    batchNum: number,
-    batchSize: number
+    traitSetId: string | null,
+    startIndex: number,
+    endIndex: number,
+    batchSize: number,
+    isFirstBatchInTraitSet: boolean
   ) {
     this.projectId = projectId;
     this.collectionId = collectionId;
     this.compositeGroupId = compositeGroupId;
-    this.batchNum = batchNum;
+    this.traitSetId = traitSetId;
+    this.startIndex = startIndex;
+    this.endIndex = endIndex;
     this.batchSize = batchSize;
+    this.isFirstBatchInTraitSet = isFirstBatchInTraitSet;
   }
 
   async generate(): Promise<(ImageComposite | null)[]> {
@@ -52,10 +65,10 @@ export class ArtworkGenerator {
 
     // fetch the specified collection / trait
     const result = await Promise.all([
-      this.fetchCollection(),
-      this.fetchTraits(),
-      this.fetchArtwork(),
-      this.fetchConflicts(),
+      Collections.withId(this.collectionId, this.projectId),
+      Traits.all(this.projectId, this.collectionId, this.traitSetId),
+      ImageLayers.all(this.projectId, this.collectionId, this.traitSetId),
+      Conflicts.all(this.projectId, this.collectionId, this.traitSetId),
     ]);
 
     const collection = result[0];
@@ -71,14 +84,19 @@ export class ArtworkGenerator {
       }
     });
 
+    const valuesWithImagesInTraitSet = Object.keys(traitValueIdToImageLayers);
+
     let traitValues: { [traitId: string]: TraitValue[] } = {};
 
     // prefetch all trait values
     for (let i = 0; i < traits.length; i++) {
       const trait = traits[i];
-      traitValues[trait.id] = await this.fetchTraitValues(
-        trait.id,
-        trait.isMetadataOnly
+      traitValues[trait.id] = await TraitValues.all(
+        this.projectId,
+        this.collectionId,
+        this.compositeGroupId,
+        trait,
+        valuesWithImagesInTraitSet
       );
     }
 
@@ -86,7 +104,7 @@ export class ArtworkGenerator {
 
     // setup only necessary at the beginning of a run,
     // so only do this for batchNum = 0
-    if (this.batchNum == 0) {
+    if (this.startIndex == 0) {
       // create download directory for all images
       await fs.promises.mkdir(
         projectDownloadPath,
@@ -112,7 +130,9 @@ export class ArtworkGenerator {
           }
         }
       );
+    }
 
+    if (this.isFirstBatchInTraitSet) {
       // predownload all uncomposited artwork
       await Promise.all(
         imageLayers.map((imageLayer) => this.downloadImageFile(imageLayer))
@@ -122,16 +142,29 @@ export class ArtworkGenerator {
     // generate artwork for each item in the collection supply
     let composites: (ImageComposite | null)[] = [];
 
-    const startIndex = this.batchNum * this.batchSize;
-    const endIndex = Math.min(
-      collection.supply,
-      (this.batchNum + 1) * this.batchSize
-    );
+    logger.info("Generating: " + this.startIndex + " - " + this.endIndex);
+    logger.info("Trait Set: " + this.traitSetId);
+    logger.info("Matching Traits: " + traits.length);
+    logger.info("Matching Trait Values: " + Object.values(traitValues).length);
+    logger.info("Matching Image Layers: " + imageLayers.length);
 
-    logger.info("Generating: " + startIndex + " - " + endIndex);
+    if (traits.length == 0) {
+      logger.info("no matching traits");
+      return [];
+    }
 
-    let i = startIndex;
-    while (i < endIndex) {
+    if (Object.values(traitValues).length == 0) {
+      logger.info("no matching trait values");
+      return [];
+    }
+
+    if (imageLayers.length == 0) {
+      logger.info("no matching image layers");
+      return [];
+    }
+
+    let i = this.startIndex;
+    while (i < this.endIndex) {
       const compositeData = await this.generateArtworkForItem(
         i,
         collection,
@@ -157,9 +190,9 @@ export class ArtworkGenerator {
 
       composites.push(composite);
 
-      // remove any possible values for metadata-only traits
+      // remove any possible values for always unique traits
       // so that they can only be used once
-      traitValues = this.removeUsedMetadataOnlyTraitValues(
+      traitValues = this.removeUsedAlwaysUniqueTraitValues(
         traits,
         traitValues,
         composite
@@ -169,7 +202,7 @@ export class ArtworkGenerator {
     }
 
     // only do cleanup if we just finished the last batch of the run
-    if (endIndex == collection.supply) {
+    if (this.endIndex == collection.supply) {
       // delete all downloaded images and composites
       await fs.promises.rmdir(
         projectDownloadPath,
@@ -200,6 +233,10 @@ export class ArtworkGenerator {
 
     let hasUnusedTraitValuePair = false;
 
+    const numRetries = 20;
+    let retriesRemaining = numRetries;
+    let failedToFindUnusedTraitPair = false;
+
     while (!hasUnusedTraitValuePair) {
       // generate a pair mapping trait to a random trait value
       traitValuePairs = await this.randomTraitValues(traits, traitValues);
@@ -211,16 +248,36 @@ export class ArtworkGenerator {
         this.collectionId,
         this.compositeGroupId
       );
+
+      retriesRemaining--;
+
+      if (retriesRemaining == 0) {
+        failedToFindUnusedTraitPair = true;
+        console.log(
+          "Unable to find unused trait pair after " + numRetries + " retries."
+        );
+        console.log("generated trait value pairs: " + traitValuePairs);
+        break;
+      }
+    }
+
+    if (failedToFindUnusedTraitPair) {
+      return null;
     }
 
     // deal with any pairs that conflict / we dont want to happen
-    traitValuePairs = this.resolveConflicts(traitValuePairs, conflicts);
+    traitValuePairs = await this.resolveConflicts(
+      traitValuePairs,
+      conflicts,
+      traitValues
+    );
 
     // for all trait value pairs, fetch the artwork representing random value
     const traitValueImagePairs = traitValuePairs.map((traitValuePair) => {
       const traitValueId = traitValuePair.traitValue?.id;
       const imageLayer = traitValueId
-        ? traitValueIdToImageLayers[traitValueId]
+        ? // needs to be null not undefined for firestore
+          traitValueIdToImageLayers[traitValueId] ?? null
         : null;
       traitValuePair.imageLayer = imageLayer;
       return traitValuePair;
@@ -301,7 +358,7 @@ export class ArtworkGenerator {
     const traitValueTasks = traits.map(async (trait) => {
       return await this.randomValue(
         traitValues[trait.id],
-        trait.isMetadataOnly
+        trait.isAlwaysUnique
       ).then(
         (value) => ({ trait: trait, traitValue: value } as TraitValuePair)
       );
@@ -309,20 +366,11 @@ export class ArtworkGenerator {
     return await Promise.all(traitValueTasks);
   }
 
-  async fetchCollection(): Promise<Collection> {
-    const collectionDoc = await db
-      .doc("/projects/" + this.projectId + "/collections/" + this.collectionId)
-      .get();
-
-    const collection = collectionDoc.data() as Collection;
-    collection.id = collectionDoc.id;
-    return collection;
-  }
-
-  resolveConflicts(
+  async resolveConflicts(
     traitValuePairs: TraitValuePair[],
-    conflicts: Conflict[]
-  ): TraitValuePair[] {
+    conflicts: Conflict[],
+    traitValuesDict: { [traitId: string]: TraitValue[] }
+  ): Promise<TraitValuePair[]> {
     for (let i = 0; i < conflicts.length; i++) {
       const conflict = conflicts[i];
 
@@ -375,17 +423,39 @@ export class ArtworkGenerator {
           ? "Any"
           : traitValuePairs[trait2ValueIndex].traitValue?.name ?? "Any";
 
-      // all matches means we have a conflict - time to handle resolution:
-      if (conflict.resolutionType == ConflictResolutionType.Trait1Wins) {
-        traitValuePairs[trait2Index].traitValue = null;
-      } else if (conflict.resolutionType == ConflictResolutionType.Trait2Wins) {
-        traitValuePairs[trait1Index].traitValue = null;
-      }
+      let resolution: string;
 
-      const resolution =
-        conflict.resolutionType == ConflictResolutionType.Trait2Wins
-          ? "dropped " + trait1Name
-          : "dropped " + trait2Name;
+      // all matches means we have a conflict - time to handle resolution:
+      switch (conflict.resolutionType) {
+        case ConflictResolutionType.Trait1None:
+          traitValuePairs[trait1Index].traitValue = null;
+          resolution = "dropped " + trait1Name;
+          break;
+        case ConflictResolutionType.Trait2None:
+          traitValuePairs[trait2Index].traitValue = null;
+          resolution = "dropped " + trait2Name;
+          break;
+        case ConflictResolutionType.Trait1Random:
+          const pair1 = traitValuePairs[trait1Index];
+          const newRandomValue1 = await this.randomValue(
+            traitValuesDict[pair1.trait.id],
+            pair1.trait.isAlwaysUnique,
+            pair1.traitValue?.id
+          );
+          traitValuePairs[trait1Index].traitValue = newRandomValue1;
+          resolution = "updated " + trait1Name + " to ";
+          break;
+        case ConflictResolutionType.Trait2Random:
+          const pair2 = traitValuePairs[trait2Index];
+          const newRandomValue2 = await this.randomValue(
+            traitValuesDict[pair2.trait.id],
+            pair2.trait.isAlwaysUnique,
+            pair2.traitValue?.id
+          );
+          traitValuePairs[trait2Index].traitValue = newRandomValue2;
+          resolution = "updated " + trait2Name + " to ";
+          break;
+      }
 
       console.log(
         "resolved conflict for " +
@@ -404,14 +474,14 @@ export class ArtworkGenerator {
     return traitValuePairs;
   }
 
-  removeUsedMetadataOnlyTraitValues(
+  removeUsedAlwaysUniqueTraitValues(
     traits: Trait[],
     traitValues: { [traitId: string]: TraitValue[] },
     composite: ImageComposite
   ): { [traitId: string]: TraitValue[] } {
     for (let i = 0; i < traits.length; i++) {
       const trait = traits[i];
-      if (trait.isMetadataOnly) {
+      if (trait.isAlwaysUnique) {
         let values = traitValues[trait.id];
         const compositeTraitPair = composite.traits.find((traitPair) => {
           return traitPair.trait.id == trait.id;
@@ -431,118 +501,6 @@ export class ArtworkGenerator {
   }
 
   /**
-   * fetch all trait values for a given collection
-   *
-   * @returns an array of Trait for the given collection
-   */
-  async fetchTraits(): Promise<Trait[]> {
-    const traitsQuery = await db
-      .collection(
-        "/projects/" +
-          this.projectId +
-          "/collections/" +
-          this.collectionId +
-          "/traits"
-      )
-      .orderBy("zIndex", "asc")
-      .get();
-
-    const traits = traitsQuery.docs.map((traitDoc: DocumentSnapshot) => {
-      const trait = traitDoc.data() as Trait;
-      trait.id = traitDoc.id;
-      return trait;
-    });
-
-    return traits;
-  }
-
-  /**
-   * fetch all trait values for a given trait
-   *
-   * @param traitId the id of the trait
-   * @param isMetadataOnly whether the trait is only metadata (not random-image based), and should be uniqued for every NFT
-   * @returns an array of TraitValue for the given trait
-   */
-  async fetchTraitValues(
-    traitId: string,
-    isMetadataOnly: boolean
-  ): Promise<TraitValue[]> {
-    const traitValuesQuery = await db
-      .collection(
-        "/projects/" +
-          this.projectId +
-          "/collections/" +
-          this.collectionId +
-          "/traits/" +
-          traitId +
-          "/traitValues"
-      )
-      .get();
-
-    const traitValues = traitValuesQuery.docs.map(
-      (traitValueDoc: DocumentSnapshot) => {
-        const traitValue = traitValueDoc.data() as TraitValue;
-        traitValue.id = traitValueDoc.id;
-        return traitValue;
-      }
-    );
-
-    if (isMetadataOnly) {
-      console.log(
-        "loading metadata only: /projects/" +
-          this.projectId +
-          "/collections/" +
-          this.collectionId +
-          "/compositeGroups/" +
-          this.compositeGroupId +
-          "/composites"
-      );
-
-      const existingCompositesQuery = await db
-        .collection(
-          "/projects/" +
-            this.projectId +
-            "/collections/" +
-            this.collectionId +
-            "/compositeGroups/" +
-            this.compositeGroupId +
-            "/composites"
-        )
-        .get();
-
-      const existingComposites: ImageComposite[] =
-        existingCompositesQuery.docs.map(
-          (existingCompositeDoc: DocumentSnapshot) => {
-            const existingComposite =
-              existingCompositeDoc.data() as ImageComposite;
-            return existingComposite;
-          }
-        );
-
-      const existingValueIds: string[] = existingComposites.reduce(function (
-        result,
-        composite
-      ) {
-        const traitPair = composite.traits.find((traitPair) => {
-          traitPair.trait.id == traitId;
-        });
-        const valueId = traitPair?.traitValue?.id;
-        if (valueId) {
-          result.push(valueId);
-        }
-        return result;
-      },
-      Array<string>());
-
-      return traitValues.filter((traitValue: TraitValue) => {
-        return existingValueIds.find((id) => id == traitValue.id) == undefined;
-      });
-    }
-
-    return traitValues;
-  }
-
-  /**
    * picturing a trait with 5 values (A-E) on a bar from 0 to 1
    * where each value's rarity covers some percentage of the bar
    * min 0 [--A--|-----B-----|-C-|--D--|-----E-----] max 1
@@ -555,9 +513,10 @@ export class ArtworkGenerator {
    */
   async randomValue(
     values: TraitValue[],
-    isTraitMetadataOnly: boolean
+    isTraitAlwaysUnique: boolean,
+    excludeTraitValueId: string | null = null
   ): Promise<TraitValue | null> {
-    if (isTraitMetadataOnly) {
+    if (isTraitAlwaysUnique) {
       const randomIndex = Math.floor(Math.random() * values.length);
       const randomValue = values[randomIndex];
 
@@ -566,22 +525,37 @@ export class ArtworkGenerator {
 
     const precision = TRAITVALUES_RARITY_MAX_PRECISION;
 
-    return this.randomNumber(precision).then((randomNumber) => {
-      let totalRarityRangeMax = 0;
-      let segment = 0;
+    let value: TraitValue | null;
 
-      while (segment < values.length) {
-        const value = values[segment];
-        totalRarityRangeMax += value.rarity;
+    const maxAttempts = 10;
+    let attempts = 0;
 
-        if (randomNumber <= totalRarityRangeMax) {
-          return value;
-        }
-        segment++;
+    do {
+      if (attempts == maxAttempts) {
+        return null;
       }
 
-      return null;
-    });
+      value = await this.randomNumber(precision).then((randomNumber) => {
+        let totalRarityRangeMax = 0;
+        let segment = 0;
+
+        while (segment < values.length) {
+          const value = values[segment];
+          totalRarityRangeMax += value.rarity;
+
+          if (randomNumber <= totalRarityRangeMax) {
+            return value;
+          }
+          segment++;
+        }
+
+        return null;
+      });
+
+      attempts++;
+    } while (excludeTraitValueId != null && value?.id === excludeTraitValueId);
+
+    return value;
   }
 
   /**
@@ -599,58 +573,6 @@ export class ArtworkGenerator {
       return random / max;
     });
     return result;
-  }
-
-  /**
-   * fetch all image layers
-   */
-  async fetchArtwork(): Promise<ImageLayer[]> {
-    const imageLayerQuery = await db
-      .collection(
-        "/projects/" +
-          this.projectId +
-          "/collections/" +
-          this.collectionId +
-          "/imagelayers"
-      )
-      .orderBy("name", "asc")
-      .get();
-
-    let imageLayers = imageLayerQuery.docs.map(
-      (imageLayerDoc: DocumentSnapshot) => {
-        let imageLayer = imageLayerDoc.data() as ImageLayer;
-        imageLayer.id = imageLayerDoc.id;
-        return imageLayer;
-      }
-    );
-
-    return imageLayers;
-  }
-
-  /**
-   * fetch all conflicts
-   */
-  async fetchConflicts(): Promise<Conflict[]> {
-    const conflictsQuery = await db
-      .collection(
-        "/projects/" +
-          this.projectId +
-          "/collections/" +
-          this.collectionId +
-          "/conflicts"
-      )
-      .orderBy("trait1Id", "asc")
-      .get();
-
-    let conflicts = conflictsQuery.docs.map(
-      (conflictsDoc: DocumentSnapshot) => {
-        let conflict = conflictsDoc.data() as Conflict;
-        conflict.id = conflictsDoc.id;
-        return conflict;
-      }
-    );
-
-    return conflicts;
   }
 
   downloadPathForImageLayer(imageLayer: ImageLayer): string {

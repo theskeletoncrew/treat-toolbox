@@ -24,13 +24,13 @@ export default interface TraitValue {
 export namespace TraitValues {
   export const FB_COLLECTION_NAME = "traitValues";
 
-  export const all = async (
+  export async function all(
     projectId: string,
     collectionId: string,
     traitId: string,
     orderByField: string = "name",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<TraitValue>> => {
+  ): Promise<Array<TraitValue>> {
     const traitValuesQuery = query(
       collection(
         db,
@@ -59,14 +59,14 @@ export namespace TraitValues {
     });
 
     return traitValues;
-  };
+  }
 
-  export const withId = async (
+  export async function withId(
     projectId: string,
     collectionId: string,
     traitId: string,
     traitValueId: string
-  ): Promise<TraitValue> => {
+  ): Promise<TraitValue> {
     const traitValueDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -90,14 +90,14 @@ export namespace TraitValues {
     const traitValue = traitValueDoc.data() as TraitValue;
     traitValue.id = traitValueDoc.id;
     return traitValue;
-  };
+  }
 
-  export const create = async (
+  export async function create(
     traitValue: TraitValue,
     projectId: string,
     collectionId: string,
     traitId: string
-  ): Promise<TraitValue> => {
+  ): Promise<TraitValue> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -122,15 +122,15 @@ export namespace TraitValues {
     return {
       ...traitValue,
     } as TraitValue;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: string,
     projectId: string,
     collectionId: string,
     traitId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -151,14 +151,14 @@ export namespace TraitValues {
     );
 
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (
+  export async function remove(
     id: string,
     projectId: string,
     collectionId: string,
     traitId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -178,5 +178,5 @@ export namespace TraitValues {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 }

@@ -20,10 +20,10 @@ export default interface UserGroup {
 export namespace UserGroups {
   export const FB_COLLECTION_NAME = "userGroups";
 
-  export const all = async (
+  export async function all(
     orderByField: string = "name",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<UserGroup>> => {
+  ): Promise<Array<UserGroup>> {
     const userGroupsQuery = query(
       collection(db, FB_COLLECTION_NAME),
       orderBy(orderByField, orderByDirection)
@@ -37,18 +37,18 @@ export namespace UserGroups {
     });
 
     return userGroups;
-  };
+  }
 
-  export const withId = async (userGroupId: string): Promise<UserGroup> => {
+  export async function withId(userGroupId: string): Promise<UserGroup> {
     const userGroupDocRef = doc(db, FB_COLLECTION_NAME + "/" + userGroupId);
 
     const userGroupDoc = await getDoc(userGroupDocRef);
     const userGroup = userGroupDoc.data() as UserGroup;
     userGroup.id = userGroupDoc.id;
     return userGroup;
-  };
+  }
 
-  export const create = async (userGroup: UserGroup): Promise<UserGroup> => {
+  export async function create(userGroup: UserGroup): Promise<UserGroup> {
     const docQuery = collection(db, FB_COLLECTION_NAME);
 
     const docRef = await addDoc(docQuery, userGroup);
@@ -58,18 +58,18 @@ export namespace UserGroups {
     return {
       ...userGroup,
     } as UserGroup;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(db, FB_COLLECTION_NAME + "/" + id);
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (id: string) => {
+  export async function remove(id: string) {
     const docRef = doc(db, FB_COLLECTION_NAME + "/" + id);
     return await deleteDoc(docRef);
-  };
+  }
 }

@@ -1,23 +1,32 @@
 import { logger } from "firebase-functions";
 import { v4 as uuidv4 } from "uuid";
-import { Collection } from "../models/models";
-import { db, storage } from "../models/firebase";
+import {
+  Collections,
+  ImageComposites,
+  Projects,
+  Users,
+} from "../models/models";
+import { storage } from "../models/firebase";
+import { CandyMachine } from "../models/candymachine";
 
 export class CandyMachineDownloader {
   projectId: string;
   collectionId: string;
   compositeGroupId: string;
+  userGroupId: string;
 
   archiver = require("archiver");
 
   constructor(
     projectId: string,
     collectionId: string,
-    compositeGroupId: string
+    compositeGroupId: string,
+    userGroupId: string
   ) {
     this.projectId = projectId;
     this.collectionId = collectionId;
     this.compositeGroupId = compositeGroupId;
+    this.userGroupId = userGroupId;
   }
 
   async download(): Promise<string> {
@@ -44,24 +53,65 @@ export class CandyMachineDownloader {
 
     archive.pipe(outputStreamBuffer);
 
-    const collection = await this.fetchCollection();
+    const project = await Projects.withId(this.projectId);
+    const collection = await Collections.withId(
+      this.collectionId,
+      this.projectId
+    );
+    const creators = await Users.all(this.userGroupId);
+
+    const composites = await ImageComposites.all(
+      this.projectId,
+      this.collectionId,
+      this.compositeGroupId
+    );
+
+    // shuffle the order of the array
+    const shuffledIndexes = [...composites.keys()]
+      .map((value) => ({ value, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ value }) => value);
+
     const archiveDir = "/candy-machine-" + filePath;
 
-    for (let i = 0; i < collection.supply; i++) {
-      const compositePath = this.pathForComposite(i);
-      const compositeFilename = i + ".png";
+    for (
+      let orderNumber = 0;
+      orderNumber < shuffledIndexes.length;
+      orderNumber++
+    ) {
+      const randomCompositeNumber = shuffledIndexes[orderNumber];
+      const compositeDownloadPath = this.pathForComposite(
+        randomCompositeNumber
+      );
+      const compositeFilename = orderNumber + ".png";
+
+      const composite = composites[randomCompositeNumber];
+
+      // create metadata json file
+      const isSuccessful = await CandyMachine.exportItem(
+        orderNumber,
+        project,
+        creators,
+        collection,
+        this.compositeGroupId,
+        composite
+      );
+
+      if (!isSuccessful) {
+        continue;
+      }
 
       // TODO: why does validation always fail if I don't disable it?
       const compositeFile = await bucket
-        .file(compositePath)
+        .file(compositeDownloadPath)
         .download({ validation: false });
 
       archive.append(compositeFile[0], {
         name: archiveDir + "/" + compositeFilename,
       });
 
-      const metadataPath = this.pathForCandyMachineMetadata(i);
-      const metadataFilename = i + ".json";
+      const metadataPath = this.pathForCandyMachineMetadata(orderNumber);
+      const metadataFilename = orderNumber + ".json";
 
       // TODO: why does validation always fail if I don't disable it?
       const metadataFile = await bucket
@@ -92,16 +142,6 @@ export class CandyMachineDownloader {
     archive.finalize();
 
     return promise;
-  }
-
-  async fetchCollection(): Promise<Collection> {
-    const collectionDoc = await db
-      .doc("/projects/" + this.projectId + "/collections/" + this.collectionId)
-      .get();
-
-    const collection = collectionDoc.data() as Collection;
-    collection.id = collectionDoc.id;
-    return collection;
   }
 
   pathForComposite(itemIndex: number): string {

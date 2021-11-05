@@ -16,6 +16,7 @@ import { Collections } from "./collection";
 
 export default interface Conflict {
   id: string;
+  traitSetId: string;
   trait1Id: string;
   trait2Id: string;
   trait1ValueId: string | null;
@@ -24,19 +25,21 @@ export default interface Conflict {
 }
 
 export enum ConflictResolutionType {
-  Trait1Wins = 0,
-  Trait2Wins,
+  Trait1None = 0,
+  Trait2None,
+  Trait1Random,
+  Trait2Random,
 }
 
 export namespace Conflicts {
   export const FB_COLLECTION_NAME = "conflicts";
 
-  export const all = async (
+  export async function all(
     projectId: string,
     collectionId: string,
     orderByField: string = "trait1Id",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<Conflict>> => {
+  ): Promise<Array<Conflict>> {
     const conflictsQuery = query(
       collection(
         db,
@@ -62,13 +65,13 @@ export namespace Conflicts {
     });
 
     return conflicts;
-  };
+  }
 
-  export const withId = async (
+  export async function withId(
     conflictId: string,
     projectId: string,
     collectionId: string
-  ): Promise<Conflict> => {
+  ): Promise<Conflict> {
     const conflictDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -89,13 +92,13 @@ export namespace Conflicts {
     let conflict = conflictDoc.data() as Conflict;
     conflict.id = conflictDoc.id;
     return conflict;
-  };
+  }
 
-  export const create = async (
+  export async function create(
     conflict: Conflict,
     projectId: string,
     collectionId: string
-  ): Promise<Conflict> => {
+  ): Promise<Conflict> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -116,14 +119,14 @@ export namespace Conflicts {
     return {
       ...conflict,
     } as Conflict;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: String,
     projectId: string,
     collectionId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -139,13 +142,13 @@ export namespace Conflicts {
         id
     );
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (
+  export async function remove(
     id: string,
     projectId: string,
     collectionId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -161,5 +164,5 @@ export namespace Conflicts {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 }
