@@ -287,7 +287,7 @@ export default function IndexPage(props: Props) {
                           >
                             Value Name
                           </th>
-                          {trait.isMetadataOnly ? (
+                          {trait.isAlwaysUnique ? (
                             ""
                           ) : (
                             <th
