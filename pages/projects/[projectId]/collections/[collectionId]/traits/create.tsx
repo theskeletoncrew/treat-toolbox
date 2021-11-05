@@ -187,34 +187,38 @@ export default function CreatePage(props: Props) {
                       </p>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="traitSets"
-                        className="block text-sm font-medium"
-                      >
-                        Trait Sets
-                      </label>
+                    {traitSets.length == 0 ? (
+                      ""
+                    ) : (
+                      <div>
+                        <label
+                          htmlFor="traitSets"
+                          className="block text-sm font-medium"
+                        >
+                          Trait Sets
+                        </label>
 
-                      {traitSets?.map((traitSet) => {
-                        return (
-                          <div key={traitSet.id}>
-                            <input
-                              type="checkbox"
-                              name="traitSets[]"
-                              id={"traitSet-" + traitSet.id}
-                              className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
-                              value={traitSet.id}
-                            />
-                            <label
-                              htmlFor={"traitSet-" + traitSet.id}
-                              className="inline-block text-sm"
-                            >
-                              {traitSet.name}
-                            </label>
-                          </div>
-                        );
-                      })}
-                    </div>
+                        {traitSets?.map((traitSet) => {
+                          return (
+                            <div key={traitSet.id}>
+                              <input
+                                type="checkbox"
+                                name="traitSets[]"
+                                id={"traitSet-" + traitSet.id}
+                                className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                                value={traitSet.id}
+                              />
+                              <label
+                                htmlFor={"traitSet-" + traitSet.id}
+                                className="inline-block text-sm"
+                              >
+                                {traitSet.name}
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">

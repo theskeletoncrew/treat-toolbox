@@ -11,6 +11,7 @@ import {
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
 import Trait, { Traits } from "../../../../../../models/trait";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import TraitValue, { TraitValues } from "../../../../../../models/traitValue";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
@@ -21,6 +22,7 @@ interface Props {
   project: Project;
   projects: Project[];
   collection: Collection;
+  traitSets: TraitSet[];
   traits: Trait[];
   traitValues: { [key: string]: TraitValue[] };
   projectId: string;
@@ -30,6 +32,7 @@ export default function IndexPage(props: Props) {
   const project = props.project;
   const projects = props.projects;
   const collection = props.collection;
+  const traitSets = props.traitSets;
   const traits = props.traits;
   const traitValues = props.traitValues;
   const projectId = props.projectId;
@@ -213,12 +216,16 @@ export default function IndexPage(props: Props) {
                           >
                             Layer
                           </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Trait Sets
-                          </th>
+                          {traitSets.length == 0 ? (
+                            ""
+                          ) : (
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Trait Sets
+                            </th>
+                          )}
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -289,23 +296,28 @@ export default function IndexPage(props: Props) {
                                   {trait?.zIndex || "0"}
                                 </div>
                               </td>
+                              {traitSets.length == 0 ? (
+                                ""
+                              ) : (
+                                <td className="px-6 py-4" width="100">
+                                  <div className="text-sm text-gray-500 overflow-ellipsis">
+                                    {trait?.traitSetIds?.length || "0"}
+                                  </div>
+                                </td>
+                              )}
                               <td className="px-6 py-4" width="100">
                                 <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {trait?.traitSetIds?.length || "0"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4" width="100">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
-                                  {Number(
-                                    100 *
-                                      traitValues[trait.id].reduce(
-                                        (result, traitValue) => {
-                                          return result + traitValue.rarity;
-                                        },
-                                        0
-                                      )
-                                  ).toFixed(2)}
-                                  %
+                                  {trait.isAlwaysUnique
+                                    ? "n/a"
+                                    : Number(
+                                        100 *
+                                          traitValues[trait.id].reduce(
+                                            (result, traitValue) => {
+                                              return result + traitValue.rarity;
+                                            },
+                                            0
+                                          )
+                                      ).toFixed(2) + "%"}
                                 </div>
                               </td>
                               <td className="px-6 py-4" width="100">
@@ -412,6 +424,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (projectId && collectionId) {
       const projects = await Projects.all();
       const collection = await Collections.withId(collectionId, projectId);
+      const traitSets = await TraitSets.all(projectId, collectionId);
       const traits = await Traits.all(projectId, collectionId);
       const project = projects.find((project) => project.id == projectId);
 
@@ -442,6 +455,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           project: project,
           projects: projects,
           collection: collection,
+          traitSets: traitSets,
           traits: traits,
           traitValues: traitValues,
           projectId: projectId,
