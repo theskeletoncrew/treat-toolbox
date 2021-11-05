@@ -16,6 +16,7 @@ interface Props {
   projects: Project[];
   collection: Collection;
   traitSets: TraitSet[];
+  traits: Trait[];
   traitsDict: { [traitSetId: string]: Trait[] };
   traitValuesDict: { [traitId: string]: TraitValue[] };
   projectId: string;
@@ -26,6 +27,7 @@ export default function CreatePage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const traitSets = props.traitSets;
+  const traits = props.traits;
   const traitsDict = props.traitsDict;
   const traitValuesDict = props.traitValuesDict;
   const projectId = props.projectId;
@@ -55,7 +57,7 @@ export default function CreatePage(props: Props) {
 
     setIsSubmitting(true);
 
-    const traitSetId = data.get("traitSetId")?.toString().trim();
+    const traitSetId = data.get("traitSetId")?.toString().trim() ?? null;
     const trait1Id = data.get("trait1Id")?.toString().trim();
     const trait2Id = data.get("trait2Id")?.toString().trim();
     const trait1ValueId = data.get("trait1ValueId")?.toString().trim();
@@ -111,38 +113,41 @@ export default function CreatePage(props: Props) {
               <form action="#" method="POST" onSubmit={onSubmit}>
                 <div className="shadow sm:rounded-md sm:overflow-hidden">
                   <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
-                    <div>
-                      <label
-                        htmlFor="traitSetId"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Trait Set
-                      </label>
+                    {traitSets.length == 0 ? (
+                      ""
+                    ) : (
+                      <div>
+                        <label
+                          htmlFor="traitSetId"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Trait Set
+                        </label>
 
-                      <select
-                        id="traitSetId"
-                        name="traitSetId"
-                        className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        defaultValue="-1"
-                        onChange={(e) => {
-                          const { value } = e.currentTarget;
-                          const traitSetId = value.toString();
-                          if (traitSetId) {
-                            onChangeTraitSetId(traitSetId);
-                          }
-                        }}
-                      >
-                        <option value="-1">
-                          {traitSets.length == 0 ? "Default" : "Unassigned"}
-                        </option>
-                        {traitSets.map((traitSet) => (
-                          <option key={traitSet.id} value={traitSet.id}>
-                            {traitSet.name}
+                        <select
+                          id="traitSetId"
+                          name="traitSetId"
+                          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          defaultValue="-1"
+                          onChange={(e) => {
+                            const { value } = e.currentTarget;
+                            const traitSetId = value.toString();
+                            if (traitSetId) {
+                              onChangeTraitSetId(traitSetId);
+                            }
+                          }}
+                        >
+                          <option value="-1">
+                            {traitSets.length == 0 ? "Default" : "Unassigned"}
                           </option>
-                        ))}
-                      </select>
-                    </div>
-
+                          {traitSets.map((traitSet) => (
+                            <option key={traitSet.id} value={traitSet.id}>
+                              {traitSet.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div>
                       <label
                         htmlFor="trait1Id"
@@ -165,14 +170,13 @@ export default function CreatePage(props: Props) {
                         }}
                       >
                         <option value="-1">Unassigned</option>
-                        {(traitSetId
-                          ? traitsDict[traitSetId]
-                          : traitsDict["-1"]
-                        ).map((trait) => (
-                          <option key={trait.id} value={trait.id}>
-                            {trait.name}
-                          </option>
-                        ))}
+                        {(traitSetId ? traitsDict[traitSetId] : traits).map(
+                          (trait) => (
+                            <option key={trait.id} value={trait.id}>
+                              {trait.name}
+                            </option>
+                          )
+                        )}
                       </select>
                     </div>
 
@@ -228,14 +232,13 @@ export default function CreatePage(props: Props) {
                         }}
                       >
                         <option value="-1">Unassigned</option>
-                        {(traitSetId
-                          ? traitsDict[traitSetId]
-                          : traitsDict["-1"]
-                        ).map((trait) => (
-                          <option key={trait.id} value={trait.id}>
-                            {trait.name}
-                          </option>
-                        ))}
+                        {(traitSetId ? traitsDict[traitSetId] : traits).map(
+                          (trait) => (
+                            <option key={trait.id} value={trait.id}>
+                              {trait.name}
+                            </option>
+                          )
+                        )}
                       </select>
                     </div>
 
@@ -336,9 +339,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       );
 
       const traitsDict: { [traitSetId: string]: Trait[] } = {};
-      if (traitSets.length == 0) {
-        traitsDict["-1"] = traits;
-      } else {
+      if (traitSets.length > 0) {
         for (let i = 0; i < traitSets.length; i++) {
           const traitSet = traitSets[i];
           const traitSetTraits = traits.filter((trait) => {
@@ -365,6 +366,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           projects: projects,
           collection: collection,
           traitSets: traitSets,
+          traits: traits,
           traitsDict: traitsDict,
           traitValuesDict: traitValuesDict,
           projectId: projectId,

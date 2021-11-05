@@ -15,7 +15,7 @@ export interface Collection {
 
 export interface Conflict {
   id: string;
-  traitSetId: string;
+  traitSetId: string | null;
   trait1Id: string;
   trait2Id: string;
   trait1ValueId: string | null;
