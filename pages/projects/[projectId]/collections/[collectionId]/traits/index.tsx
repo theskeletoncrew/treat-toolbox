@@ -286,7 +286,12 @@ export default function IndexPage(props: Props) {
                                 </div>
                               </td>
                               <td className="px-6 py-4">
-                                <div className="text-sm text-gray-500 overflow-ellipsis">
+                                <div
+                                  className="text-sm text-gray-500 overflow-ellipsis"
+                                  title={traitValues[trait.id]
+                                    .flatMap((value) => value.name)
+                                    .join(", ")}
+                                >
                                   [{traitValues[trait.id].length}]{" "}
                                   {traitValues[trait.id]
                                     .slice(0, 20)
@@ -306,7 +311,19 @@ export default function IndexPage(props: Props) {
                                 ""
                               ) : (
                                 <td className="px-6 py-4" width="100">
-                                  <div className="text-sm text-gray-500 overflow-ellipsis">
+                                  <div
+                                    className="text-sm text-gray-500 overflow-ellipsis"
+                                    title={traitSets
+                                      .filter((traitSet) => {
+                                        return trait?.traitSetIds.includes(
+                                          traitSet.id
+                                        );
+                                      })
+                                      .map((traitSet) => {
+                                        return traitSet.name;
+                                      })
+                                      .join(", ")}
+                                  >
                                     {trait?.traitSetIds?.length || "0"}
                                   </div>
                                 </td>
