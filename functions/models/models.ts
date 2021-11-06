@@ -24,10 +24,10 @@ export interface Conflict {
 }
 
 export enum ConflictResolutionType {
-  Trait1None = 0,
-  Trait2None,
-  Trait1Random,
+  Trait2None = 0,
+  Trait1None,
   Trait2Random,
+  Trait1Random,
 }
 
 export enum DropStatus {
