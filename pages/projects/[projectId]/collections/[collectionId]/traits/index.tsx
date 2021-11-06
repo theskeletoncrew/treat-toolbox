@@ -248,6 +248,12 @@ export default function IndexPage(props: Props) {
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
+                            Artwork Only
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
                             Exclude from duplicate detection
                           </th>
                           <th
@@ -328,6 +334,11 @@ export default function IndexPage(props: Props) {
                               <td className="px-6 py-4" width="100">
                                 <div className="text-sm text-gray-500 overflow-ellipsis">
                                   {trait?.isMetadataOnly ? "yes" : "no"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4" width="100">
+                                <div className="text-sm text-gray-500 overflow-ellipsis">
+                                  {trait?.isArtworkOnly ? "yes" : "no"}
                                 </div>
                               </td>
                               <td className="px-6 py-4" width="100">

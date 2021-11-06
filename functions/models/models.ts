@@ -75,6 +75,7 @@ export interface Trait {
   zIndex: number;
   traitSetIds: string[];
   isMetadataOnly: boolean;
+  isArtworkOnly: boolean;
   isAlwaysUnique: boolean;
   excludeFromDuplicateDetection: boolean;
 }

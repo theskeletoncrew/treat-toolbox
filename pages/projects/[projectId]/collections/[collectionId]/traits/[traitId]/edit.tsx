@@ -46,6 +46,8 @@ export default function EditPage(props: Props) {
       return item.toString();
     });
 
+    const isMetadataOnly = data.get("isMetadataOnly")?.toString() == "1";
+    const isArtworkOnly = data.get("isArtworkOnly")?.toString() == "1";
     const isAlwaysUnique = data.get("isAlwaysUnique")?.toString() == "1";
 
     const excludeFromDuplicateDetection =
@@ -56,6 +58,8 @@ export default function EditPage(props: Props) {
         name: name,
         zIndex: zIndex ?? 0,
         traitSetIds: traitSetIds,
+        isMetadataOnly: isMetadataOnly,
+        isArtworkOnly: isArtworkOnly,
         isAlwaysUnique: isAlwaysUnique,
         excludeFromDuplicateDetection: excludeFromDuplicateDetection,
       },
@@ -159,11 +163,53 @@ export default function EditPage(props: Props) {
                     <div>
                       <input
                         type="checkbox"
+                        name="isMetadataOnly"
+                        id="isMetadataOnly"
+                        className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                        value="1"
+                        defaultChecked={trait.isMetadataOnly}
+                      />
+                      <label
+                        htmlFor="isMetadataOnly"
+                        className="inline-block text-sm font-medium"
+                      >
+                        Metadata-only Trait
+                      </label>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Check this box if this is a trait that is not associated
+                        with artwork
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="checkbox"
+                        name="isArtworkOnly"
+                        id="isArtworkOnly"
+                        className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                        value="1"
+                        defaultChecked={trait.isArtworkOnly}
+                      />
+                      <label
+                        htmlFor="isArtworkOnly"
+                        className="inline-block text-sm font-medium"
+                      >
+                        Artwork-only Trait
+                      </label>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Check this box if this is a trait should appear in
+                        artwork but not appear in metadata
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="checkbox"
                         name="isAlwaysUnique"
                         id="isAlwaysUnique"
                         className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
                         value="1"
-                        defaultChecked={trait.excludeFromDuplicateDetection}
+                        defaultChecked={trait.isAlwaysUnique}
                       />
                       <label
                         htmlFor="isAlwaysUnique"

@@ -98,12 +98,16 @@ export namespace CandyMachine {
     imageComposite: ImageComposite | null
   ): CandyMachineItem {
     const attributes =
-      imageComposite?.traits.map((elem) => {
-        return {
-          trait_type: elem.trait.name,
-          value: elem.traitValue?.name ?? "None",
-        } as TraitValuePair;
-      }) ?? [];
+      imageComposite?.traits
+        .filter((traitPair) => {
+          return !traitPair.trait.isArtworkOnly;
+        })
+        .map((elem) => {
+          return {
+            trait_type: elem.trait.name,
+            value: elem.traitValue?.name ?? "None",
+          } as TraitValuePair;
+        }) ?? [];
 
     const humanReadableOrderNumber = orderNumber + 1;
 

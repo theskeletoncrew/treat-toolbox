@@ -43,6 +43,7 @@ export default function CreatePage(props: Props) {
     });
 
     const isMetadataOnly = data.get("isMetadataOnly")?.toString() == "1";
+    const isArtworkOnly = data.get("isArtworkOnly")?.toString() == "1";
     const isAlwaysUnique = data.get("isAlwaysUnique")?.toString() == "1";
     const excludeFromDuplicateDetection =
       data.get("excludeFromDuplicateDetection")?.toString() == "1";
@@ -52,6 +53,7 @@ export default function CreatePage(props: Props) {
       zIndex: zIndex,
       traitSetIds: traitSetIds,
       isMetadataOnly: isMetadataOnly,
+      isArtworkOnly: isArtworkOnly,
       isAlwaysUnique: isAlwaysUnique,
       excludeFromDuplicateDetection: excludeFromDuplicateDetection,
     } as Trait;
@@ -163,6 +165,26 @@ export default function CreatePage(props: Props) {
                       <p className="text-xs text-gray-600 mt-2">
                         Check this box if this is a trait that is not associated
                         with artwork
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="checkbox"
+                        name="isArtworkOnly"
+                        id="isArtworkOnly"
+                        className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                        value="1"
+                      />
+                      <label
+                        htmlFor="isArtworkOnly"
+                        className="inline-block text-sm font-medium"
+                      >
+                        Artwork-only Trait
+                      </label>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Check this box if this is a trait should appear in
+                        artwork but not appear in metadata
                       </p>
                     </div>
 
