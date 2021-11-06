@@ -12,6 +12,7 @@ import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
 import ImageLayer, { ImageLayers } from "../../../../../../models/imageLayer";
 import Trait, { Traits } from "../../../../../../models/trait";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import TraitValue, { TraitValues } from "../../../../../../models/traitValue";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
@@ -24,7 +25,9 @@ interface Props {
   collection: Collection;
   imageLayers: ImageLayer[];
   projectId: string;
+  traitSets: TraitSet[];
   traits: Trait[];
+  traitsDict: { [traitSetId: string]: Trait[] };
   traitValuesDict: { [traitId: string]: TraitValue[] };
 }
 
@@ -34,7 +37,9 @@ export default function IndexPage(props: Props) {
   const collection = props.collection;
   const imageLayers = props.imageLayers;
   const projectId = props.projectId;
+  const traitSets = props.traitSets;
   const traits = props.traits;
+  const traitsDict = props.traitsDict;
   const traitValuesDict = props.traitValuesDict;
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -65,6 +70,42 @@ export default function IndexPage(props: Props) {
   const cancelDeleteImageLayer = async () => {
     setImageLayerIdToDelete(null);
     setDeleteModalOpen(false);
+  };
+
+  const onChangeTraitSetId = async (
+    traitSetId: string,
+    imageLayerId: string
+  ) => {
+    // START LOADING
+
+    await ImageLayers.update(
+      {
+        traitSetId: traitSetId == "-1" ? null : traitSetId,
+      },
+      imageLayerId,
+      projectId,
+      collection.id
+    );
+
+    // STOP LOADING
+
+    const traitIdElem = document.getElementById(imageLayerId + "-trait");
+
+    if (traitIdElem) {
+      const nonNilOptions = traitsDict[traitSetId]?.map((trait) => {
+        return `<option value=${trait.id}>${trait.name}</option>`;
+      });
+      traitIdElem.innerHTML =
+        '<option key="-1" value="-1"></option>' + nonNilOptions?.join();
+    }
+
+    const traitValueElem = document.getElementById(
+      imageLayerId + "-traitValue"
+    );
+
+    if (traitValueElem) {
+      traitValueElem.innerHTML = '<option key="-1" value="-1"></option>';
+    }
   };
 
   const onChangeTraitId = async (traitId: string, imageLayerId: string) => {
@@ -115,37 +156,69 @@ export default function IndexPage(props: Props) {
   const syncFilenamesToTraits = async () => {
     let updates: Promise<void>[] = [];
 
+    let hasAlerted = false;
+
     imageLayers.forEach((imageLayer) => {
       // strip extension from filename
       const imageName = imageLayer.name.replace(/\.[^/.]+$/, "");
-      const components = imageName.split(new RegExp(/[\_\-\ ]/, "i"));
+      const components = imageName.split(new RegExp(/\-/, "i"));
 
-      if (components.length == 2) {
-        const traitName = components[0].toLowerCase();
-        const traitValueName = components[1].toLowerCase();
+      if (components.length < 2) {
+        return;
+      }
 
-        const trait = traits.find((trait) => {
-          return trait.name.toLowerCase() == traitName;
+      let traitSetName: string;
+      let traitName: string;
+      let traitValueName: string;
+
+      let traitSet: TraitSet | undefined;
+      let trait: Trait | undefined;
+
+      if (components.length == 3) {
+        traitSetName = components[0].toLowerCase();
+        traitSet = traitSets.find((iterSet) => {
+          return iterSet.name.toLowerCase() == traitSetName;
         });
-        if (trait) {
-          const traitValue = traitValuesDict[trait.id].find((traitValue) => {
-            return traitValue.name.toLowerCase() == traitValueName;
-          });
 
-          if (traitValue) {
-            updates.push(
-              ImageLayers.update(
-                {
-                  traitId: trait.id,
-                  traitValueId: traitValue.id,
-                },
-                imageLayer.id,
-                project.id,
-                collection.id
-              )
-            );
-          }
+        if (!traitSet) {
+          return;
         }
+
+        traitName = components[1].toLowerCase();
+        traitValueName = components[2].toLowerCase();
+      } else {
+        traitSetName = traitName = components[0].toLowerCase();
+        traitValueName = components[1].toLowerCase();
+      }
+
+      trait = traits.find((iterTrait) => {
+        return (
+          iterTrait.name.toLowerCase() == traitName &&
+          (!traitSet || iterTrait.traitSetIds.includes(traitSet.id))
+        );
+      });
+
+      if (!trait) {
+        return;
+      }
+
+      const traitValue = traitValuesDict[trait.id].find((traitValue) => {
+        return traitValue.name.toLowerCase() == traitValueName;
+      });
+
+      if (traitValue) {
+        updates.push(
+          ImageLayers.update(
+            {
+              traitSetId: traitSet?.id,
+              traitId: trait.id,
+              traitValueId: traitValue.id,
+            },
+            imageLayer.id,
+            project.id,
+            collection.id
+          )
+        );
       }
     });
 
@@ -317,10 +390,40 @@ export default function IndexPage(props: Props) {
                   <br />
                   <div>
                     <label
+                      htmlFor="traitSet"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Associated Trait Set
+                    </label>
+                    <select
+                      id={imageLayer.id + "-traitSet"}
+                      className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      defaultValue={imageLayer.traitSetId ?? "-1"}
+                      onChange={(e) => {
+                        const { value } = e.currentTarget;
+                        const traitSetId = value.toString();
+                        if (traitSetId) {
+                          onChangeTraitSetId(traitSetId, imageLayer.id);
+                        }
+                      }}
+                    >
+                      <option value="-1">
+                        {traitSets.length == 0 ? "Default" : "Unassigned"}
+                      </option>
+                      {traitSets.map((traitSet) => (
+                        <option key={traitSet.id} value={traitSet.id}>
+                          {traitSet.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
                       htmlFor="trait"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Associated Trait
+                      Associated Trait {traitsDict["-1"]?.length ?? 0}
                     </label>
                     <select
                       id={imageLayer.id + "-trait"}
@@ -335,11 +438,13 @@ export default function IndexPage(props: Props) {
                       }}
                     >
                       <option value="-1">Unassigned</option>
-                      {traits.map((trait) => (
-                        <option key={trait.id} value={trait.id}>
-                          {trait.name}
-                        </option>
-                      ))}
+                      {traitsDict[imageLayer.traitSetId ?? "-1"]?.map(
+                        (trait) => (
+                          <option key={trait.id} value={trait.id}>
+                            {trait.name}
+                          </option>
+                        )
+                      )}
                     </select>
                   </div>
 
@@ -410,7 +515,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       const collection = await Collections.withId(collectionId, projectId);
       const imageLayers = await ImageLayers.all(projectId, collectionId);
       const project = projects.find((project) => project.id == projectId);
-      const traits = await Traits.all(projectId, collectionId, "name");
+      const traitSets = await TraitSets.all(projectId, collectionId);
+      const traits = await Traits.all(projectId, collectionId);
+
+      const traitsDict: { [traitSetId: string]: Trait[] } = {};
+
+      if (traitSets.length == 0) {
+        traitsDict["-1"] = traits;
+      } else {
+        for (let i = 0; i < traitSets.length; i++) {
+          const traitSet = traitSets[i];
+          let includedTraits: Trait[] = [];
+          for (let j = 0; j < traits.length; j++) {
+            const trait = traits[j];
+
+            if (trait.traitSetIds.includes(traitSet.id)) {
+              includedTraits.push(trait);
+            }
+          }
+          traitsDict[traitSet.id] = includedTraits;
+        }
+      }
+
       const traitValuesDict: { [traitId: string]: TraitValue[] } = {};
       for (let i = 0; i < traits.length; i++) {
         const trait = traits[i];
@@ -429,6 +555,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           collection: collection,
           imageLayers: imageLayers,
           projectId: projectId,
+          traitSets: traitSets,
+          traitsDict: traitsDict,
           traits: traits,
           traitValuesDict: traitValuesDict,
         },

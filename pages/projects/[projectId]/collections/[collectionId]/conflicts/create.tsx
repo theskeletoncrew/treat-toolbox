@@ -3,6 +3,7 @@ import Layout from "../../../../../../components/Layout";
 import FormDescription from "../../../../../../components/FormDescription";
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import Trait, { Traits } from "../../../../../../models/trait";
 import TraitValue, { TraitValues } from "../../../../../../models/traitValue";
 import Conflict, { Conflicts } from "../../../../../../models/conflict";
@@ -14,7 +15,9 @@ interface Props {
   project: Project;
   projects: Project[];
   collection: Collection;
+  traitSets: TraitSet[];
   traits: Trait[];
+  traitsDict: { [traitSetId: string]: Trait[] };
   traitValuesDict: { [traitId: string]: TraitValue[] };
   projectId: string;
 }
@@ -23,14 +26,21 @@ export default function CreatePage(props: Props) {
   const project = props.project;
   const projects = props.projects;
   const collection = props.collection;
+  const traitSets = props.traitSets;
   const traits = props.traits;
+  const traitsDict = props.traitsDict;
   const traitValuesDict = props.traitValuesDict;
   const projectId = props.projectId;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [traitSetId, setTraitSetId] = useState<string | null>(null);
   const [trait1Id, setTrait1Id] = useState<string | null>(null);
   const [trait2Id, setTrait2Id] = useState<string | null>(null);
+
+  const onChangeTraitSetId = async (traitSetId: string) => {
+    setTraitSetId(traitSetId);
+  };
 
   const onChangeTrait1Id = async (traitId: string) => {
     setTrait1Id(traitId);
@@ -47,6 +57,7 @@ export default function CreatePage(props: Props) {
 
     setIsSubmitting(true);
 
+    const traitSetId = data.get("traitSetId")?.toString().trim() ?? null;
     const trait1Id = data.get("trait1Id")?.toString().trim();
     const trait2Id = data.get("trait2Id")?.toString().trim();
     const trait1ValueId = data.get("trait1ValueId")?.toString().trim();
@@ -56,6 +67,7 @@ export default function CreatePage(props: Props) {
     const resolutionType = resolutionTypeStr ? parseInt(resolutionTypeStr) : 0;
 
     const conflict = {
+      traitSetId: traitSetId,
       trait1Id: trait1Id,
       trait2Id: trait2Id,
       trait1ValueId: trait1ValueId == "-1" ? null : trait1ValueId,
@@ -101,6 +113,41 @@ export default function CreatePage(props: Props) {
               <form action="#" method="POST" onSubmit={onSubmit}>
                 <div className="shadow sm:rounded-md sm:overflow-hidden">
                   <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
+                    {traitSets.length == 0 ? (
+                      ""
+                    ) : (
+                      <div>
+                        <label
+                          htmlFor="traitSetId"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Trait Set
+                        </label>
+
+                        <select
+                          id="traitSetId"
+                          name="traitSetId"
+                          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          defaultValue="-1"
+                          onChange={(e) => {
+                            const { value } = e.currentTarget;
+                            const traitSetId = value.toString();
+                            if (traitSetId) {
+                              onChangeTraitSetId(traitSetId);
+                            }
+                          }}
+                        >
+                          <option value="-1">
+                            {traitSets.length == 0 ? "Default" : "Unassigned"}
+                          </option>
+                          {traitSets.map((traitSet) => (
+                            <option key={traitSet.id} value={traitSet.id}>
+                              {traitSet.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div>
                       <label
                         htmlFor="trait1Id"
@@ -123,11 +170,13 @@ export default function CreatePage(props: Props) {
                         }}
                       >
                         <option value="-1">Unassigned</option>
-                        {traits.map((trait) => (
-                          <option key={trait.id} value={trait.id}>
-                            {trait.name}
-                          </option>
-                        ))}
+                        {(traitSetId ? traitsDict[traitSetId] : traits).map(
+                          (trait) => (
+                            <option key={trait.id} value={trait.id}>
+                              {trait.name}
+                            </option>
+                          )
+                        )}
                       </select>
                     </div>
 
@@ -183,11 +232,13 @@ export default function CreatePage(props: Props) {
                         }}
                       >
                         <option value="-1">Unassigned</option>
-                        {traits.map((trait) => (
-                          <option key={trait.id} value={trait.id}>
-                            {trait.name}
-                          </option>
-                        ))}
+                        {(traitSetId ? traitsDict[traitSetId] : traits).map(
+                          (trait) => (
+                            <option key={trait.id} value={trait.id}>
+                              {trait.name}
+                            </option>
+                          )
+                        )}
                       </select>
                     </div>
 
@@ -235,10 +286,16 @@ export default function CreatePage(props: Props) {
                         defaultValue="0"
                       >
                         <option key={"0"} value="0">
-                          Dropping 2
+                          Set Trait 1 to None
                         </option>
                         <option key={"1"} value="1">
-                          Dropping 1
+                          Set Trait 2 to None
+                        </option>
+                        <option key={"2"} value="2">
+                          Choose a new random value for Trait 1
+                        </option>
+                        <option key={"3"} value="3">
+                          Choose a new random value for Trait 2
                         </option>
                       </select>
                     </div>
@@ -271,6 +328,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       const projects = await Projects.all();
       const collection = await Collections.withId(collectionId, projectId);
       const project = projects.find((project) => project.id == projectId);
+      const traitSets = await TraitSets.all(projectId, collectionId);
+
       const traits = await Traits.all(
         projectId,
         collectionId,
@@ -278,6 +337,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         "asc",
         true
       );
+
+      const traitsDict: { [traitSetId: string]: Trait[] } = {};
+      if (traitSets.length > 0) {
+        for (let i = 0; i < traitSets.length; i++) {
+          const traitSet = traitSets[i];
+          const traitSetTraits = traits.filter((trait) => {
+            return trait.traitSetIds.includes(traitSet.id);
+          });
+          traitsDict[traitSet.id] = traitSetTraits;
+        }
+      }
+
       const traitValuesDict: { [traitId: string]: TraitValue[] } = {};
       for (let i = 0; i < traits.length; i++) {
         const trait = traits[i];
@@ -294,7 +365,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           project: project,
           projects: projects,
           collection: collection,
+          traitSets: traitSets,
           traits: traits,
+          traitsDict: traitsDict,
           traitValuesDict: traitValuesDict,
           projectId: projectId,
         },

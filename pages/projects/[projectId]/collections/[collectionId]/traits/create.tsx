@@ -3,6 +3,7 @@ import Layout from "../../../../../../components/Layout";
 import FormDescription from "../../../../../../components/FormDescription";
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import Trait, { Traits } from "../../../../../../models/trait";
 import { GetServerSideProps } from "next";
 import { FormEvent, useState } from "react";
@@ -12,6 +13,7 @@ interface Props {
   project: Project;
   projects: Project[];
   collection: Collection;
+  traitSets: TraitSet[];
   projectId: string;
 }
 
@@ -19,6 +21,7 @@ export default function CreatePage(props: Props) {
   const project = props.project;
   const projects = props.projects;
   const collection = props.collection;
+  const traitSets = props.traitSets;
   const projectId = props.projectId;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,14 +38,23 @@ export default function CreatePage(props: Props) {
     const zIndexStr = data.get("zIndex")?.toString().trim();
     const zIndex = zIndexStr ? parseInt(zIndexStr) : 0;
 
+    const traitSetIds: string[] = data.getAll("traitSets[]").map((item) => {
+      return item.toString();
+    });
+
     const isMetadataOnly = data.get("isMetadataOnly")?.toString() == "1";
+    const isArtworkOnly = data.get("isArtworkOnly")?.toString() == "1";
+    const isAlwaysUnique = data.get("isAlwaysUnique")?.toString() == "1";
     const excludeFromDuplicateDetection =
       data.get("excludeFromDuplicateDetection")?.toString() == "1";
 
     const trait = {
       name: name,
       zIndex: zIndex,
+      traitSetIds: traitSetIds,
       isMetadataOnly: isMetadataOnly,
+      isArtworkOnly: isArtworkOnly,
+      isAlwaysUnique: isAlwaysUnique,
       excludeFromDuplicateDetection: excludeFromDuplicateDetection,
     } as Trait;
 
@@ -119,6 +131,26 @@ export default function CreatePage(props: Props) {
                     <div>
                       <input
                         type="checkbox"
+                        name="isAlwaysUnique"
+                        id="isAlwaysUnique"
+                        className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                        value="1"
+                      />
+                      <label
+                        htmlFor="isAlwaysUnique"
+                        className="inline-block text-sm font-medium"
+                      >
+                        Always Unique
+                      </label>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Check this box if this is a trait with a unique value
+                        for every NFT (ex. a name)
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="checkbox"
                         name="isMetadataOnly"
                         id="isMetadataOnly"
                         className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
@@ -128,11 +160,31 @@ export default function CreatePage(props: Props) {
                         htmlFor="isMetadataOnly"
                         className="inline-block text-sm font-medium"
                       >
-                        Metadata-only Trait?
+                        Metadata-only Trait
                       </label>
                       <p className="text-xs text-gray-600 mt-2">
-                        Check this box if this is a trait with no associated
-                        artwork (ex. a name)
+                        Check this box if this is a trait that is not associated
+                        with artwork
+                      </p>
+                    </div>
+
+                    <div>
+                      <input
+                        type="checkbox"
+                        name="isArtworkOnly"
+                        id="isArtworkOnly"
+                        className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                        value="1"
+                      />
+                      <label
+                        htmlFor="isArtworkOnly"
+                        className="inline-block text-sm font-medium"
+                      >
+                        Artwork-only Trait
+                      </label>
+                      <p className="text-xs text-gray-600 mt-2">
+                        Check this box if this is a trait should appear in
+                        artwork but not appear in metadata
                       </p>
                     </div>
 
@@ -156,6 +208,39 @@ export default function CreatePage(props: Props) {
                         duplicates (ex. background colour)
                       </p>
                     </div>
+
+                    {traitSets.length == 0 ? (
+                      ""
+                    ) : (
+                      <div>
+                        <label
+                          htmlFor="traitSets"
+                          className="block text-sm font-medium"
+                        >
+                          Trait Sets
+                        </label>
+
+                        {traitSets?.map((traitSet) => {
+                          return (
+                            <div key={traitSet.id}>
+                              <input
+                                type="checkbox"
+                                name="traitSets[]"
+                                id={"traitSet-" + traitSet.id}
+                                className="shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
+                                value={traitSet.id}
+                              />
+                              <label
+                                htmlFor={"traitSet-" + traitSet.id}
+                                className="inline-block text-sm"
+                              >
+                                {traitSet.name}
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
@@ -184,6 +269,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (projectId && collectionId) {
       const projects = await Projects.all();
       const collection = await Collections.withId(collectionId, projectId);
+      const traitSets = await TraitSets.all(projectId, collectionId);
       const project = projects.find((project) => project.id == projectId);
 
       return {
@@ -191,6 +277,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           project: project,
           projects: projects,
           collection: collection,
+          traitSets: traitSets,
           projectId: projectId,
         },
       };

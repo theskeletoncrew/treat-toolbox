@@ -6,11 +6,7 @@ import Project, { Projects } from "../../../../../../../models/project";
 import Collection, {
   Collections,
 } from "../../../../../../../models/collection";
-import ImageCompositeGroup, {
-  ImageCompositeGroups,
-} from "../../../../../../../models/imageCompositeGroup";
 import { GetServerSideProps } from "next";
-import { CandyMachine } from "../../../../../../../models/candymachine";
 import ImageComposite, {
   ImageComposites,
 } from "../../../../../../../models/imageComposite";
@@ -18,7 +14,6 @@ import { API } from "../../../../../../../models/api";
 import { ProgressModal } from "../../../../../../../components/ProgressModal";
 import { ActionModal } from "../../../../../../../components/ActionModal";
 import { useState } from "react";
-import { Users } from "../../../../../../../models/user";
 
 interface Props {
   project: Project;
@@ -27,6 +22,7 @@ interface Props {
   compositeGroupId: string;
   composites: ImageComposite[];
   projectId: string;
+  userGroupId: string;
 }
 
 export default function IndexPage(props: Props) {
@@ -36,10 +32,10 @@ export default function IndexPage(props: Props) {
   const compositeGroupId = props.compositeGroupId;
   const composites = props.composites;
   const projectId = props.projectId;
+  const userGroupId = props.userGroupId;
 
   const [exportingModalOpen, setExportingModalOpen] = useState(false);
-  const [exportingItem, setExportingItem] = useState(0);
-  const exportingTotal = collection.supply;
+  const exportingTotal = composites.length;
 
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [downloadURL, setDownloadURL] = useState("");
@@ -58,82 +54,39 @@ export default function IndexPage(props: Props) {
     let jsonExports: Promise<void>[] = [];
 
     setExportingModalOpen(true);
-    const creators = await Users.all(collection.userGroupId);
 
-    for (let i = 0; i < composites.length; i++) {
-      const composite = composites[i];
-
-      const jsonExport = new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-          CandyMachine.exportItem(
-            i,
-            project,
-            creators,
-            collection,
-            compositeGroupId,
-            composite
-          )
-            .then((isSuccessful) => {
-              setExportingItem(i);
-              console.log(
-                "Export of " +
-                  i +
-                  " was a " +
-                  (isSuccessful ? "success" : "failure")
-              );
-
-              if (isSuccessful) {
-                resolve();
-              } else {
-                reject();
-              }
-            })
-            .catch((e) => {
-              console.log(e);
-              reject();
-            });
-        }, i * 200);
-      });
-
-      jsonExports.push(jsonExport);
-    }
-
-    Promise.all(jsonExports)
-      .then(() => {
-        fetch(
-          API.ENDPOINT +
-            "/download-archive?projectId=" +
-            projectId +
-            "&collectionId=" +
-            collection.id +
-            "&compositeGroupId=" +
-            compositeGroupId,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-          }
-        )
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((json) => {
-            console.log(json);
-            setExportingModalOpen(false);
-            setDownloadURL(json.url);
-            setDownloadModalOpen(true);
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
+    fetch(
+      API.ENDPOINT +
+        "/download-archive?projectId=" +
+        projectId +
+        "&collectionId=" +
+        collection.id +
+        "&compositeGroupId=" +
+        compositeGroupId +
+        "&userGroupId=" +
+        userGroupId,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
       })
-      .catch((e) => {
-        console.error("Failure prepping before download: " + e);
+      .then((json) => {
+        console.log(json);
+        setExportingModalOpen(false);
+        setDownloadURL(json.url);
+        setDownloadModalOpen(true);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
       });
   }
 
@@ -267,14 +220,17 @@ export default function IndexPage(props: Props) {
 
             <ProgressModal
               title="Exporting for Candy Machine"
-              message={"Exporting " + exportingItem + ".json"}
-              loadingPercent={Math.ceil(
-                (100 * (exportingItem + 1)) / exportingTotal
-              )}
+              message={
+                "Exporting " +
+                exportingTotal +
+                " items. This may take a while..."
+              }
+              loadingPercent={0}
               cancelAction={() => {
                 cancelExporting();
               }}
               show={exportingModalOpen}
+              indeterminate={true}
             />
 
             <ActionModal
@@ -331,6 +287,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           compositeGroupId: compositeGroupId,
           composites: composites,
           projectId: projectId,
+          userGroupId: collection.userGroupId,
         },
       };
     }

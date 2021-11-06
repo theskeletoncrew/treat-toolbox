@@ -5,6 +5,7 @@ import Collection from "../../models/collection";
 
 const tabs = [
   { id: "details", name: "Details" },
+  { id: "traitSets", name: "Trait Sets" },
   { id: "traits", name: "Traits" },
   { id: "artwork", name: "Artwork" },
   { id: "conflicts", name: "Conflicts" },

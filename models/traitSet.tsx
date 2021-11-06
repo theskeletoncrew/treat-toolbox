@@ -1,6 +1,4 @@
 import { db } from "../app-firebase";
-import { Projects } from "./project";
-import { Collections } from "./collection";
 import {
   query,
   collection,
@@ -13,30 +11,26 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
+import { Projects } from "./project";
+import Collection, { Collections } from "./collection";
+import { Traits } from "./trait";
 
-export default interface ImageLayer {
+export default interface TraitSet {
   id: string;
-  bucketFilename: string;
-  url: string;
   name: string;
-  bytes: number;
-  traitSetId: string | null;
-  traitId: string | null;
-  traitValueId: string | null;
-  companionLayerId: string | null;
-  companionLayerZIndex: number | null;
+  supply: number;
 }
 
-export namespace ImageLayers {
-  export const FB_COLLECTION_NAME = "imagelayers";
+export namespace TraitSets {
+  export const FB_COLLECTION_NAME = "traitSets";
 
   export async function all(
     projectId: string,
     collectionId: string,
     orderByField: string = "name",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<ImageLayer>> {
-    const artworkQuery = query(
+  ): Promise<Array<TraitSet>> {
+    const traitSetsQuery = query(
       collection(
         db,
         Projects.FB_COLLECTION_NAME +
@@ -52,23 +46,36 @@ export namespace ImageLayers {
       orderBy(orderByField, orderByDirection)
     );
 
-    let querySnapshot = await getDocs(artworkQuery);
+    const querySnapshot = await getDocs(traitSetsQuery);
 
-    let imageLayers = querySnapshot.docs.map((artworkDoc) => {
-      let imageLayer = artworkDoc.data() as ImageLayer;
-      imageLayer.id = artworkDoc.id;
-      return imageLayer;
+    const traitSets = querySnapshot.docs.map((traitSetDoc) => {
+      const traitSet = traitSetDoc.data() as TraitSet;
+      traitSet.id = traitSetDoc.id;
+      return traitSet;
     });
 
-    return imageLayers;
+    return traitSets;
+  }
+
+  export async function defaultTraitSet(
+    projectId: string,
+    collection: Collection
+  ): Promise<TraitSet> {
+    const allTraits = await Traits.all(projectId, collection.id);
+
+    return {
+      id: "-1",
+      name: "Default",
+      supply: collection.supply,
+    } as TraitSet;
   }
 
   export async function withId(
     projectId: string,
     collectionId: string,
-    imageLayerId: string
-  ): Promise<ImageLayer> {
-    const artworkDocRef = doc(
+    traitSetId: string
+  ): Promise<TraitSet> {
+    const traitSetDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
         "/" +
@@ -78,23 +85,23 @@ export namespace ImageLayers {
         "/" +
         collectionId +
         "/" +
-        FB_COLLECTION_NAME +
+        TraitSets.FB_COLLECTION_NAME +
         "/" +
-        imageLayerId
+        traitSetId
     );
 
-    let artworkDoc = await getDoc(artworkDocRef);
+    const traitSetDoc = await getDoc(traitSetDocRef);
 
-    let imageLayer = artworkDoc.data() as ImageLayer;
-    imageLayer.id = artworkDoc.id;
-    return imageLayer;
+    let traitSet = traitSetDoc.data() as TraitSet;
+    traitSet.id = traitSetDoc.id;
+    return traitSet;
   }
 
   export async function create(
-    imageLayer: ImageLayer,
-    projectId: String,
-    collectionId: String
-  ): Promise<ImageLayer> {
+    traitSet: TraitSet,
+    projectId: string,
+    collectionId: string
+  ): Promise<TraitSet> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -108,18 +115,18 @@ export namespace ImageLayers {
         FB_COLLECTION_NAME
     );
 
-    const docRef = await addDoc(docQuery, imageLayer);
+    const docRef = await addDoc(docQuery, traitSet);
 
-    imageLayer.id = docRef.id;
+    traitSet.id = docRef.id;
 
     return {
-      ...imageLayer,
-    } as ImageLayer;
+      ...traitSet,
+    } as TraitSet;
   }
 
   export async function update(
     updates: { [x: string]: any },
-    id: string,
+    id: String,
     projectId: string,
     collectionId: string
   ): Promise<void> {
@@ -137,7 +144,6 @@ export namespace ImageLayers {
         "/" +
         id
     );
-
     return await updateDoc(docRef, updates);
   }
 
@@ -161,17 +167,5 @@ export namespace ImageLayers {
         id
     );
     return await deleteDoc(docRef);
-  }
-
-  export function formatBytes(bytes: number, decimals = 2) {
-    if (bytes === 0) return "0 B";
-
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 }

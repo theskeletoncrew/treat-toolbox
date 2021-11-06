@@ -27,11 +27,11 @@ export default interface User {
 export namespace Users {
   export const FB_COLLECTION_NAME = "users";
 
-  export const all = async (
+  export async function all(
     groupId: string,
     orderByField: string = "name",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<User>> => {
+  ): Promise<Array<User>> {
     const usersQuery = query(
       collection(
         db,
@@ -54,12 +54,9 @@ export namespace Users {
     });
 
     return users;
-  };
+  }
 
-  export const withId = async (
-    userId: string,
-    groupId: string
-  ): Promise<User> => {
+  export async function withId(userId: string, groupId: string): Promise<User> {
     const userDocRef = doc(
       db,
       "/" +
@@ -76,9 +73,9 @@ export namespace Users {
     const user = userDoc.data() as User;
     user.id = userDoc.id;
     return user;
-  };
+  }
 
-  export const create = async (user: User, groupId: string): Promise<User> => {
+  export async function create(user: User, groupId: string): Promise<User> {
     const docQuery = collection(
       db,
       "/" +
@@ -96,15 +93,13 @@ export namespace Users {
     return {
       ...user,
     } as User;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: string,
-    groupId: string,
-    orderByField: string = "name",
-    orderByDirection: OrderByDirection = "asc"
-  ): Promise<void> => {
+    groupId: string
+  ): Promise<void> {
     const docRef = doc(
       db,
       UserGroups.FB_COLLECTION_NAME +
@@ -117,9 +112,9 @@ export namespace Users {
     );
 
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (id: string, groupId: string): Promise<void> => {
+  export async function remove(id: string, groupId: string): Promise<void> {
     const docRef = doc(
       db,
       UserGroups.FB_COLLECTION_NAME +
@@ -131,10 +126,10 @@ export namespace Users {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 
-  export const gravatarURL = (email: string): string => {
+  export function gravatarURL(email: string): string {
     const hash = md5(email.trim().toLowerCase()).toString();
     return "https://www.gravatar.com/avatar/" + hash;
-  };
+  }
 }

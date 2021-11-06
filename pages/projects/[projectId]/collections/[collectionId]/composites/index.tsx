@@ -2,32 +2,27 @@ import Layout from "../../../../../../components/Layout";
 import DropsSubnav from "../../../../../../components/DropsSubnav";
 import { EmptyState } from "../../../../../../components/EmptyState";
 import Link from "next/dist/client/link";
-import {
-  TrashIcon,
-  PencilAltIcon,
-  DocumentAddIcon,
-} from "@heroicons/react/outline";
+import { TrashIcon, DocumentAddIcon } from "@heroicons/react/outline";
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
 import ImageCompositeGroup, {
   ImageCompositeGroups,
 } from "../../../../../../models/imageCompositeGroup";
-import ImageComposite, {
-  ImageComposites,
-} from "../../../../../../models/imageComposite";
+import { ImageComposites } from "../../../../../../models/imageComposite";
+import { TraitSets } from "../../../../../../models/traitSet";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
 import { ProgressModal } from "../../../../../../components/ProgressModal";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { API } from "../../../../../../models/api";
-import { collectionGroup } from "@firebase/firestore";
 
 interface Props {
   project: Project;
   projects: Project[];
   collection: Collection;
   compositeGroups: ImageCompositeGroup[];
+  compositesCountDict: { [compositeGroupId: string]: number };
   projectId: string;
 }
 
@@ -36,14 +31,21 @@ export default function IndexPage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const compositeGroups = props.compositeGroups;
+  const compositesCountDict = props.compositesCountDict;
   const projectId = props.projectId;
 
   const BATCH_SIZE = 100;
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [generatingModalOpen, setGeneratingModalOpen] = useState(false);
-  const [generatingBatch, setGeneratingBatch] = useState(0);
-  const generatingTotal = collection.supply;
+  const [isGeneratingCancelled, setIsGeneratingCancelled] = useState(false);
+
+  const [generatingTraitSetName, setGeneratingTraitSetName] = useState("");
+  const [generatingTraitSetSize, setGeneratingTraitSetSize] = useState(0);
+
+  const [traitSetGeneratedItems, setTraitSetGeneratedItems] = useState(0);
+  const [totalGeneratedItems, setTotalGeneratedItems] = useState(0);
+
   const [compositeGroupIdToDelete, setCompositeGroupIdToDelete] = useState<
     string | null
   >(null);
@@ -81,6 +83,7 @@ export default function IndexPage(props: Props) {
     let batchNum = 0;
     let totalCreated = 0;
 
+    setIsGeneratingCancelled(false);
     setGeneratingModalOpen(true);
 
     const compositeGroup = await ImageCompositeGroups.create(
@@ -89,49 +92,74 @@ export default function IndexPage(props: Props) {
       collection.id
     );
 
-    let compositeIdsToCompositeHashes: { [key: string]: string } = {};
+    let traitSets = await TraitSets.all(projectId, collection.id);
+    if (traitSets.length == 0) {
+      const defaultTraitSet = await TraitSets.defaultTraitSet(
+        projectId,
+        collection
+      );
+      traitSets = [defaultTraitSet];
+    }
 
-    const maxBatchNum = Math.floor(collection.supply / BATCH_SIZE);
+    for (let i = 0; i < traitSets.length && !isGeneratingCancelled; i++) {
+      const traitSet = traitSets[i];
+      let traitSetCreated = 0;
 
-    while (collection.supply > totalCreated) {
-      setGeneratingBatch(Math.min(batchNum, maxBatchNum));
+      setGeneratingTraitSetName(traitSet.name);
+      setGeneratingTraitSetSize(traitSet.supply);
 
-      const newComposites = await fetch(
-        API.ENDPOINT +
-          "/generate-artwork?projectId=" +
-          projectId +
-          "&collectionId=" +
-          collection.id +
-          "&compositeGroupId=" +
-          compositeGroup.id +
-          "&batchNum=" +
-          batchNum +
-          "&batchSize=" +
-          BATCH_SIZE,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      )
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
+      while (
+        traitSet.supply > traitSetCreated &&
+        collection.supply > totalCreated &&
+        !isGeneratingCancelled
+      ) {
+        setTraitSetGeneratedItems(traitSetCreated);
+        setTotalGeneratedItems(totalCreated);
+
+        const maxTraitSetBatchSize = traitSet.supply - traitSetCreated;
+        const batchSize = Math.min(BATCH_SIZE, maxTraitSetBatchSize);
+
+        const newComposites = await fetch(
+          API.ENDPOINT +
+            "/generate-artwork?projectId=" +
+            projectId +
+            "&collectionId=" +
+            collection.id +
+            "&compositeGroupId=" +
+            compositeGroup.id +
+            "&traitSetId=" +
+            traitSet.id +
+            "&startIndex=" +
+            totalCreated +
+            "&batchSize=" +
+            batchSize +
+            "&isFirstBatchInTraitSet=" +
+            (traitSetCreated == 0 ? "1" : "0"),
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
           }
-          return response.json();
-        })
-        .then((json) => {
-          console.log(json);
-          return json;
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
+        )
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((json) => {
+            console.log(json);
+            return json;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
 
-      batchNum += 1;
-      totalCreated = batchNum * BATCH_SIZE;
+        traitSetCreated += batchSize;
+        totalCreated += batchSize;
+      }
     }
 
     console.log("art generation complete");
@@ -155,8 +183,8 @@ export default function IndexPage(props: Props) {
   };
 
   function cancelGenerateCompositeGroup() {
-    // TODO: truly cancel the generating task
-    // right now we just hide the progress modal
+    console.log("Generating cancelled");
+    setIsGeneratingCancelled(true);
     setGeneratingModalOpen(false);
   }
 
@@ -225,6 +253,12 @@ export default function IndexPage(props: Props) {
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Total Composites
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           ></th>
                         </tr>
                       </thead>
@@ -246,6 +280,11 @@ export default function IndexPage(props: Props) {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
                                   {compositeGroup?.id ?? "Unknown"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {compositesCountDict[compositeGroup.id]}
                                 </div>
                               </td>
                               <td align="right" width="100">
@@ -298,14 +337,16 @@ export default function IndexPage(props: Props) {
         <ProgressModal
           title="Generating Composite Group"
           message={
-            BATCH_SIZE * generatingBatch +
+            generatingTraitSetName +
+            ":" +
+            traitSetGeneratedItems +
             "-" +
-            Math.min(BATCH_SIZE * (generatingBatch + 1), collection.supply) +
+            generatingTraitSetSize +
             " of " +
-            generatingTotal
+            collection.supply
           }
           loadingPercent={Math.ceil(
-            (100 * (BATCH_SIZE * generatingBatch)) / generatingTotal
+            (100 * totalGeneratedItems) / collection.supply
           )}
           cancelAction={() => {
             cancelGenerateCompositeGroup();
@@ -331,12 +372,24 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         collectionId
       );
 
+      let compositesCountDict: { [compositeGroupId: string]: number } = {};
+      for (let i = 0; i < compositeGroups.length; i++) {
+        const compositeGroupId = compositeGroups[i].id;
+        const composites = await ImageComposites.all(
+          projectId,
+          collectionId,
+          compositeGroupId
+        );
+        compositesCountDict[compositeGroupId] = composites.length;
+      }
+
       return {
         props: {
           project: project,
           projects: projects,
           collection: collection,
           compositeGroups: compositeGroups,
+          compositesCountDict: compositesCountDict,
           projectId: projectId,
         },
       };

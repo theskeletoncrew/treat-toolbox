@@ -23,10 +23,10 @@ export default interface Project {
 export namespace Projects {
   export const FB_COLLECTION_NAME = "projects";
 
-  export const all = async (
+  export async function all(
     orderByField: string = "name",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<Project>> => {
+  ): Promise<Array<Project>> {
     const projectQuery = query(
       collection(db, FB_COLLECTION_NAME),
       orderBy(orderByField, orderByDirection)
@@ -41,18 +41,18 @@ export namespace Projects {
     });
 
     return projects;
-  };
+  }
 
-  export const withId = async (projectId: string): Promise<Project> => {
+  export async function withId(projectId: string): Promise<Project> {
     const projectDocRef = doc(db, FB_COLLECTION_NAME + "/" + projectId);
 
     const projectDoc = await getDoc(projectDocRef);
     const project = projectDoc.data() as Project;
     project.id = projectDoc.id;
     return project;
-  };
+  }
 
-  export const create = async (project: Project): Promise<Project> => {
+  export async function create(project: Project): Promise<Project> {
     const docQuery = collection(db, FB_COLLECTION_NAME);
 
     const docRef = await addDoc(docQuery, project);
@@ -62,15 +62,15 @@ export namespace Projects {
     return {
       ...project,
     } as Project;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(db, FB_COLLECTION_NAME + "/" + id);
     return await updateDoc(docRef, updates);
-  };
+  }
 
   export const remove = async (id: string) => {
     const docRef = doc(db, FB_COLLECTION_NAME + "/" + id);

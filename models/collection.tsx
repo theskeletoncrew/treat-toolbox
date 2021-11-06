@@ -33,11 +33,11 @@ export enum DropStatus {
 export namespace Collections {
   export const FB_COLLECTION_NAME = "collections";
 
-  export const all = async (
+  export async function all(
     projectId: string,
     orderByField: string = "name",
     orderByDirection: OrderByDirection = "asc"
-  ): Promise<Array<Collection>> => {
+  ): Promise<Array<Collection>> {
     const collectionsQuery = query(
       collection(
         db,
@@ -55,12 +55,12 @@ export namespace Collections {
     });
 
     return collections;
-  };
+  }
 
-  export const withId = async (
+  export async function withId(
     collectionId: string,
     projectId: string
-  ): Promise<Collection> => {
+  ): Promise<Collection> {
     const collectionDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -77,12 +77,12 @@ export namespace Collections {
     collection.id = collectionDoc.id;
     collection.startDate = null;
     return collection;
-  };
+  }
 
-  export const create = async (
+  export async function create(
     newCollection: Collection,
     projectId: string
-  ): Promise<Collection> => {
+  ): Promise<Collection> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME + "/" + projectId + "/" + FB_COLLECTION_NAME
@@ -95,13 +95,13 @@ export namespace Collections {
     return {
       ...newCollection,
     } as Collection;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: string,
     projectId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -113,12 +113,9 @@ export namespace Collections {
         id
     );
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (
-    id: string,
-    projectId: string
-  ): Promise<void> => {
+  export async function remove(id: string, projectId: string): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -130,5 +127,5 @@ export namespace Collections {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 }

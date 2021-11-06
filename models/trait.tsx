@@ -18,20 +18,24 @@ export default interface Trait {
   id: string;
   name: string;
   zIndex: number;
+  traitSetIds: string[];
   isMetadataOnly: boolean;
+  isArtworkOnly: boolean;
+  isAlwaysUnique: boolean;
   excludeFromDuplicateDetection: boolean;
 }
 
 export namespace Traits {
   export const FB_COLLECTION_NAME = "traits";
 
-  export const all = async (
+  export async function all(
     projectId: string,
     collectionId: string,
     orderByField: string = "zIndex",
     orderByDirection: OrderByDirection = "asc",
+    excludeAlwaysUnique: boolean = false,
     excludeMetadataOnly: boolean = false
-  ): Promise<Array<Trait>> => {
+  ): Promise<Array<Trait>> {
     const traitsQuery = query(
       collection(
         db,
@@ -50,26 +54,27 @@ export namespace Traits {
 
     const querySnapshot = await getDocs(traitsQuery);
 
-    const traits = querySnapshot.docs.map((traitDoc) => {
+    let traits = querySnapshot.docs.map((traitDoc) => {
       const trait = traitDoc.data() as Trait;
       trait.id = traitDoc.id;
       return trait;
     });
 
-    if (excludeMetadataOnly) {
-      return traits.filter((trait) => {
-        return trait.isMetadataOnly != true;
-      });
-    }
+    traits = traits.filter((trait) => {
+      return (
+        (!excludeMetadataOnly || trait.isMetadataOnly != true) &&
+        (!excludeAlwaysUnique || trait.isAlwaysUnique != true)
+      );
+    });
 
     return traits;
-  };
+  }
 
-  export const withId = async (
+  export async function withId(
     projectId: string,
     collectionId: string,
     traitId: string
-  ): Promise<Trait> => {
+  ): Promise<Trait> {
     const traitDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -90,13 +95,13 @@ export namespace Traits {
     let trait = traitDoc.data() as Trait;
     trait.id = traitDoc.id;
     return trait;
-  };
+  }
 
-  export const create = async (
+  export async function create(
     trait: Trait,
     projectId: string,
     collectionId: string
-  ): Promise<Trait> => {
+  ): Promise<Trait> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -117,14 +122,14 @@ export namespace Traits {
     return {
       ...trait,
     } as Trait;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: String,
     projectId: string,
     collectionId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -140,13 +145,13 @@ export namespace Traits {
         id
     );
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (
+  export async function remove(
     id: string,
     projectId: string,
     collectionId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -162,5 +167,5 @@ export namespace Traits {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 }

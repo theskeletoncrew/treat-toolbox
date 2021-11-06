@@ -42,7 +42,7 @@ export default function CreatePage(props: Props) {
 
     const traitValue = {
       name: name,
-      rarity: trait.isMetadataOnly ? -1 : rarity,
+      rarity: trait.isAlwaysUnique ? -1 : rarity,
     } as TraitValue;
 
     await TraitValues.create(traitValue, project.id, collection.id, trait.id);
@@ -100,7 +100,7 @@ export default function CreatePage(props: Props) {
                       />
                     </div>
 
-                    {trait.isMetadataOnly ? (
+                    {trait.isAlwaysUnique ? (
                       ""
                     ) : (
                       <div>

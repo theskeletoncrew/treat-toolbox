@@ -36,11 +36,11 @@ export interface TraitValuePair {
 export namespace ImageComposites {
   export const FB_COLLECTION_NAME = "composites";
 
-  export const all = async (
+  export async function all(
     projectId: string,
     collectionId: string,
     compositeGroupId: string
-  ): Promise<Array<any>> => {
+  ): Promise<Array<any>> {
     const compositesQuery = query(
       collection(
         db,
@@ -69,14 +69,14 @@ export namespace ImageComposites {
     });
 
     return composites;
-  };
+  }
 
-  export const withId = async (
+  export async function withId(
     id: string,
     projectId: string,
     collectionId: string,
     compositeGroupId: string
-  ): Promise<ImageComposite> => {
+  ): Promise<ImageComposite> {
     const compositeDocRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -101,14 +101,14 @@ export namespace ImageComposites {
     let composite = compositeDoc.data() as ImageComposite;
     composite.id = compositeDoc.id;
     return composite;
-  };
+  }
 
-  export const create = async (
+  export async function create(
     imageComposite: ImageComposite,
     projectId: string,
     collectionId: string,
     compositeGroupId: string
-  ): Promise<ImageComposite> => {
+  ): Promise<ImageComposite> {
     const docQuery = collection(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -131,15 +131,15 @@ export namespace ImageComposites {
     return {
       ...imageComposite,
     } as ImageComposite;
-  };
+  }
 
-  export const update = async (
+  export async function update(
     updates: { [x: string]: any },
     id: string,
     projectId: string,
     collectionId: string,
     compositeGroupId: string
-  ): Promise<void> => {
+  ): Promise<void> {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -160,14 +160,14 @@ export namespace ImageComposites {
     );
 
     return await updateDoc(docRef, updates);
-  };
+  }
 
-  export const remove = async (
+  export async function remove(
     id: string,
     projectId: string,
     collectionId: string,
     compositeGroupId: string
-  ) => {
+  ) {
     const docRef = doc(
       db,
       Projects.FB_COLLECTION_NAME +
@@ -187,5 +187,5 @@ export namespace ImageComposites {
         id
     );
     return await deleteDoc(docRef);
-  };
+  }
 }
