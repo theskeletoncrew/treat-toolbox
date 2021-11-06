@@ -8,6 +8,7 @@ import Collection, {
 import ImageLayer, {
   ImageLayers,
 } from "../../../../../../../models/imageLayer";
+import TraitSet, { TraitSets } from "../../../../../../../models/traitSet";
 import Trait, { Traits } from "../../../../../../../models/trait";
 import TraitValue, {
   TraitValues,
@@ -22,7 +23,8 @@ interface Props {
   collection: Collection;
   imageLayer: ImageLayer;
   imageLayers: ImageLayer[];
-  traits: Trait[];
+  traitSets: TraitSet[];
+  initialTraits: Trait[];
   initialTraitValues: TraitValue[];
 }
 
@@ -32,13 +34,31 @@ export default function EditPage(props: Props) {
   const collection = props.collection;
   const imageLayer = props.imageLayer;
   const imageLayers = props.imageLayers;
-  const traits = props.traits;
+  const traitSets = props.traitSets;
+  const initialTraits = props.initialTraits;
   const initialTraitValues = props.initialTraitValues;
 
+  const [selectedTraitSetId, setSelectedTraitSetId] = useState<string | null>(
+    imageLayer.traitSetId
+  );
   const [selectedTraitId, setSelectedTraitId] = useState<string | null>(
     imageLayer.traitId
   );
+  const [traits, setTraits] = useState(initialTraits);
   const [traitValues, setTraitValues] = useState(initialTraitValues);
+
+  const onChangeTraitSetId = async (traitSetId: string) => {
+    setSelectedTraitSetId(traitSetId);
+    const traits = await Traits.all(projectId, collection.id);
+    if (traitSetId == "-1") {
+      setTraits(traits);
+    } else {
+      const filteredTraits = traits.filter((trait) => {
+        return trait.traitSetIds.includes(traitSetId);
+      });
+      setTraits(filteredTraits);
+    }
+  };
 
   const onChangeTraitId = async (traitId: string) => {
     setSelectedTraitId(traitId);
@@ -59,6 +79,7 @@ export default function EditPage(props: Props) {
 
     setIsSubmitting(true);
 
+    const traitSetId = data.get("traitSet")?.toString().trim();
     const traitId = data.get("trait")?.toString().trim();
     const traitValueId = data.get("traitValue")?.toString().trim();
     const companionLayerId = data.get("companionLayerId")?.toString().trim();
@@ -71,6 +92,7 @@ export default function EditPage(props: Props) {
         url: imageLayer.url,
         name: imageLayer.name,
         bytes: imageLayer.bytes,
+        traitSetId: traitSetId,
         traitId: traitId,
         traitValueId: traitValueId,
         companionLayerId: companionLayerId,
@@ -134,6 +156,39 @@ export default function EditPage(props: Props) {
                         className="mt-1 block w-full shadow-sm sm:text-sm rounded-md border-transparent bg-gray-50 text-gray-500"
                       />
                     </div>
+
+                    {traitSets.length == 0 ? (
+                      ""
+                    ) : (
+                      <div>
+                        <label
+                          htmlFor="traitSet"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Associated Trait Set
+                        </label>
+                        <select
+                          id="traitSet"
+                          name="traitSet"
+                          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          defaultValue={imageLayer.traitSetId ?? "-1"}
+                          onChange={(e) => {
+                            const { value } = e.currentTarget;
+                            const traitId = value.toString();
+                            if (traitId) {
+                              onChangeTraitSetId(traitId);
+                            }
+                          }}
+                        >
+                          <option value="-1">Unassigned</option>
+                          {traitSets.map((traitSet) => (
+                            <option key={traitSet.id} value={traitSet.id}>
+                              {traitSet.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
                     <div>
                       <label
@@ -253,13 +308,24 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (projectId && collectionId && imageLayerId) {
       const projects = await Projects.all();
       const collection = await Collections.withId(collectionId, projectId);
-      const traits = await Traits.all(projectId, collectionId, "name");
+      const traitSets = await TraitSets.all(projectId, collectionId);
       const imageLayer = await ImageLayers.withId(
         projectId,
         collectionId,
         imageLayerId
       );
       const imageLayers = await ImageLayers.all(projectId, collectionId);
+
+      const traitSetId = imageLayer.traitSetId;
+      let initialTraits: Array<Trait>;
+      const traits = await Traits.all(projectId, collectionId, "name");
+      if (traitSetId) {
+        initialTraits = traits.filter((trait) => {
+          return trait.traitSetIds.includes(traitSetId);
+        });
+      } else {
+        initialTraits = traits;
+      }
 
       let initialTraitValues: Array<TraitValue>;
       if (imageLayer.traitId) {
@@ -279,7 +345,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           collection: collection,
           imageLayer: imageLayer,
           imageLayers: imageLayers,
-          traits: traits,
+          traitSets: traitSets,
+          initialTraits: initialTraits,
           initialTraitValues: initialTraitValues,
         },
       };
