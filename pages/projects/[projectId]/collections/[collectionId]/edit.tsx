@@ -44,7 +44,7 @@ export default function EditPage(props: Props) {
     const symbol = data.get("symbol")?.toString().trim().toUpperCase();
 
     const creatorsGroupId = data.get("creators")?.toString().trim();
-    const collectionName = data.get("collectionName")?.toString().trim();
+    const nftName = data.get("nftName")?.toString().trim();
 
     await Collections.update(
       {
@@ -54,7 +54,7 @@ export default function EditPage(props: Props) {
         symbol: symbol,
         status: DropStatus.Pending,
         userGroupId: creatorsGroupId,
-        collectionName: collectionName
+        nftName: nftName
       },
       collection.id,
       projectId
@@ -93,38 +93,38 @@ export default function EditPage(props: Props) {
                   <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
                     <div>
                       <label
-                        htmlFor="collectionName"
+                        htmlFor="name"
                         className="block text-sm font-medium text-gray-700"
                       >
                         Collection Name
                       </label>
                       <input
                         type="text"
-                        name="collectionName"
-                        id="collectionName"
+                        name="name"
+                        id="name"
                         placeholder="Gen 0"
-                        defaultValue={collection.collectionName}
+                        defaultValue={collection.name}
                         className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
                       />
                     </div>
 
                     <div className="col-span-6 sm:col-span-4">
                       <label
-                          htmlFor="name"
+                          htmlFor="nftName"
                           className="block text-sm font-medium text-gray-700"
                       >
                         NFT Name
                       </label>
                       <input
                           type="text"
-                          name="name"
-                          id="name"
+                          name="nftName"
+                          id="nftName"
                           placeholder="Name of NFT"
-                          defaultValue={collection.name}
+                          defaultValue={collection.nftName}
                           className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
                       />
                       <p className="mt-2 text-xs text-gray-500">
-                        This is the name of the NFT that will be generated in the JSON file
+                        This is the name that will be shown on the NFT. The index number will be appended, ex. "NAME #542"
                       </p>
                     </div>
 

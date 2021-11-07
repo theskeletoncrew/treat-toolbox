@@ -5,7 +5,7 @@ import { db } from "./firebase";
 export interface Collection {
   id: string;
   name: string;
-  collectionName: string;
+  nftName: string;
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;

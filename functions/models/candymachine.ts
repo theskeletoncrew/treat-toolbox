@@ -112,7 +112,7 @@ export namespace CandyMachine {
     const humanReadableOrderNumber = orderNumber + 1;
 
     return {
-      name: collection.name + " #" + humanReadableOrderNumber, // shift for 0 index
+      name: collection.nftName + " #" + humanReadableOrderNumber, // shift for 0 index
       symbol: collection.symbol,
       description: project.description,
       seller_fee_basis_points: collection.sellerFeeBasisPoints,
@@ -121,7 +121,7 @@ export namespace CandyMachine {
       image: orderNumber + ".png",
       attributes: attributes,
       collection: {
-        name: collection.collectionName,
+        name: collection.name,
         family: project.name,
       } as CollectionItem,
       properties: {
