@@ -424,7 +424,7 @@ export namespace TraitValues {
 export namespace Users {
   export async function all(userGroupId: string): Promise<User[]> {
     const usersQuery = await db
-      .collection("/usergroups/" + userGroupId + "/users")
+      .collection("/userGroups/" + userGroupId + "/users")
       .get();
 
     let users = usersQuery.docs.map((userDoc) => {
