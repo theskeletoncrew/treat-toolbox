@@ -112,20 +112,16 @@ export namespace CandyMachine {
     const humanReadableOrderNumber = orderNumber + 1;
 
     return {
-      name: collection.symbol + " #" + humanReadableOrderNumber, // shift for 0 index
+      name: collection.name + " #" + humanReadableOrderNumber, // shift for 0 index
       symbol: collection.symbol,
       description: project.description,
       seller_fee_basis_points: collection.sellerFeeBasisPoints,
       external_url:
-        project.url +
-        "/" +
-        collection.symbol.toLowerCase() +
-        "/" +
-        humanReadableOrderNumber,
+        project.url,
       image: orderNumber + ".png",
       attributes: attributes,
       collection: {
-        name: collection.name,
+        name: collection.collectionName,
         family: project.name,
       } as CollectionItem,
       properties: {

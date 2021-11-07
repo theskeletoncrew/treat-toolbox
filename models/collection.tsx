@@ -22,6 +22,7 @@ export default interface Collection {
   status: DropStatus;
   startDate: Date | null;
   userGroupId: string;
+  collectionName: string
 }
 
 export enum DropStatus {
