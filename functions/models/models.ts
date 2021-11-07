@@ -14,6 +14,7 @@ export interface Collection {
   userGroupId: string;
 }
 
+
 export interface Conflict {
   id: string;
   traitSetId: string | null;

@@ -25,6 +25,7 @@ export default interface Collection {
   nftName: string;
 }
 
+
 export enum DropStatus {
   Pending = 0,
   Active,

@@ -151,7 +151,6 @@ export default function IndexPage(props: Props) {
     );
   }
 }
-
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
     const projectId = context.query.projectId?.toString();

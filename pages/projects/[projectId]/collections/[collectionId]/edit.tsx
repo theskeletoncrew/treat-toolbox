@@ -59,7 +59,6 @@ export default function EditPage(props: Props) {
       collection.id,
       projectId
     );
-
     setIsSubmitting(false);
 
     router.push(
@@ -258,3 +257,4 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {},
   };
 };
+
