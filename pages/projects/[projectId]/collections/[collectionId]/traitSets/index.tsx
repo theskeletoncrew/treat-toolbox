@@ -256,7 +256,7 @@ export default function IndexPage(props: Props) {
           </main>
 
           <DestructiveModal
-            title="Delete Trait"
+            title="Delete Trait Set"
             message={
               "Are you sure you want to delete ‘" +
               (traitSets.find((traitSet) => traitSet.id == traitSetIdToDelete)

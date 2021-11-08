@@ -337,7 +337,7 @@ export default function IndexPage(props: Props) {
           </main>
 
           <DestructiveModal
-            title="Delete Trait"
+            title="Delete Conflict"
             message={
               "Are you sure you want to delete this conflict? This action cannot be undone."
             }
