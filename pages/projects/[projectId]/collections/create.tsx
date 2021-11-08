@@ -41,9 +41,11 @@ export default function CreatePage(props: Props) {
     const symbol = data.get("symbol")?.toString().trim().toUpperCase();
 
     const creatorsGroupId = data.get("creators")?.toString().trim();
+    const nftName = data.get("nftName")?.toString().trim();
 
     const collection = {
       name: name,
+      nftName: nftName,
       supply: supply,
       sellerFeeBasisPoints: sellerFeeBasisPoints,
       symbol: symbol,
@@ -64,6 +66,7 @@ export default function CreatePage(props: Props) {
       { shallow: false }
     );
   };
+
 
   return (
     <Layout
@@ -98,6 +101,25 @@ export default function CreatePage(props: Props) {
                         placeholder="Skulls 2021"
                         className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
                       />
+                    </div>
+
+                    <div className="col-span-6 sm:col-span-4">
+                      <label
+                          htmlFor="nftName"
+                          className="block text-sm font-medium text-gray-700"
+                      >
+                        NFT Name
+                      </label>
+                      <input
+                          type="text"
+                          name="nftName"
+                          id="nftName"
+                          placeholder="Name of NFT in JSON File"
+                          className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
+                      />
+                      <p className="mt-2 text-xs text-gray-500">
+                        This is the name that will be shown on the NFT. The index number will be appended, ex. "NAME #542"
+                      </p>
                     </div>
 
                     <div className="col-span-6 sm:col-span-4">

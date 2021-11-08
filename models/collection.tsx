@@ -22,7 +22,9 @@ export default interface Collection {
   status: DropStatus;
   startDate: Date | null;
   userGroupId: string;
+  nftName: string;
 }
+
 
 export enum DropStatus {
   Pending = 0,

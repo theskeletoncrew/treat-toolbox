@@ -5,6 +5,7 @@ import { db } from "./firebase";
 export interface Collection {
   id: string;
   name: string;
+  nftName: string;
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;
@@ -12,6 +13,7 @@ export interface Collection {
   startDate: Date | null;
   userGroupId: string;
 }
+
 
 export interface Conflict {
   id: string;
