@@ -10,7 +10,10 @@ import Trait, { Traits } from "../../../../../../../models/trait";
 import TraitValue, {
   TraitValues,
 } from "../../../../../../../models/traitValue";
-import Conflict, { Conflicts } from "../../../../../../../models/conflict";
+import Conflict, {
+  Conflicts,
+  ConflictResolutionType,
+} from "../../../../../../../models/conflict";
 import { GetServerSideProps } from "next";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/router";
@@ -295,16 +298,28 @@ export default function EditPage(props: Props) {
                         className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         defaultValue={conflict.resolutionType}
                       >
-                        <option key={"0"} value="0">
+                        <option
+                          key={ConflictResolutionType.Trait1None.toString()}
+                          value={ConflictResolutionType.Trait1None.toString()}
+                        >
                           Set Trait 1 to None
                         </option>
-                        <option key={"1"} value="1">
+                        <option
+                          key={ConflictResolutionType.Trait2None.toString()}
+                          value={ConflictResolutionType.Trait2None.toString()}
+                        >
                           Set Trait 2 to None
                         </option>
-                        <option key={"2"} value="2">
+                        <option
+                          key={ConflictResolutionType.Trait1Random.toString()}
+                          value={ConflictResolutionType.Trait1Random.toString()}
+                        >
                           Choose a new random value for Trait 1
                         </option>
-                        <option key={"3"} value="3">
+                        <option
+                          key={ConflictResolutionType.Trait2Random.toString()}
+                          value={ConflictResolutionType.Trait2Random.toString()}
+                        >
                           Choose a new random value for Trait 2
                         </option>
                       </select>
