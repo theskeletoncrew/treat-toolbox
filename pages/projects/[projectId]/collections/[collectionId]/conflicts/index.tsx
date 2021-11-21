@@ -10,6 +10,7 @@ import {
 import Project, { Projects } from "../../../../../../models/project";
 import Collection, { Collections } from "../../../../../../models/collection";
 import Conflict, { Conflicts } from "../../../../../../models/conflict";
+import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
 import Trait, { Traits } from "../../../../../../models/trait";
 import TraitValue, { TraitValues } from "../../../../../../models/traitValue";
 import { ConflictResolutionType } from "../../../../../../models/conflict";
@@ -23,6 +24,7 @@ interface Props {
   projects: Project[];
   collection: Collection;
   conflicts: Conflict[];
+  traitSets: TraitSet[];
   traits: Trait[];
   traitValues: TraitValue[];
   projectId: string;
@@ -33,6 +35,7 @@ export default function IndexPage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const conflicts = props.conflicts;
+  const traitSets = props.traitSets;
   const traits = props.traits;
   const traitValues = props.traitValues;
   const projectId = props.projectId;
@@ -172,6 +175,12 @@ export default function IndexPage(props: Props) {
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
+                            Trait Set
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
                             Trait 1 Name
                           </th>
                           <th
@@ -242,6 +251,17 @@ export default function IndexPage(props: Props) {
                                 key={conflict.id}
                                 className="hover:bg-gray-100 cursor-pointer"
                               >
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-900">
+                                    {conflict?.traitSetId
+                                      ? traitSets.find((traitSet) => {
+                                          return (
+                                            traitSet.id == conflict?.traitSetId
+                                          );
+                                        })?.name
+                                      : ""}
+                                  </div>
+                                </td>
                                 <td className="px-6 py-4">
                                   <div className="text-sm text-gray-900">
                                     {conflict?.trait1Id
@@ -365,6 +385,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       const collection = await Collections.withId(collectionId, projectId);
       const conflicts = await Conflicts.all(projectId, collectionId);
       const project = projects.find((project) => project.id == projectId);
+      const traitSets = await TraitSets.all(projectId, collectionId);
       const traits = await Traits.all(projectId, collectionId);
 
       let traitValues: TraitValue[] = [];
@@ -384,6 +405,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           projects: projects,
           collection: collection,
           conflicts: conflicts,
+          traitSets: traitSets,
           traits: traits,
           traitValues: traitValues,
           projectId: projectId,

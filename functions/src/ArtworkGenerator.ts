@@ -3,19 +3,21 @@ import { storage } from "../models/firebase";
 import {
   Collection,
   Collections,
+  Conflict,
   Conflicts,
-  Trait,
-  Traits,
-  TraitValue,
-  TraitValues,
+  ConflictResolutionType,
+  ImageComposite,
+  ImageComposites,
   ImageLayer,
   ImageLayers,
   OrderedImageLayer,
+  Trait,
+  Traits,
+  TraitSets,
+  TraitValue,
   TraitValuePair,
-  ImageComposite,
-  ImageComposites,
-  Conflict,
-  ConflictResolutionType,
+  TraitValues,
+  TraitSet,
 } from "../models/models";
 
 const path = require("path");
@@ -63,21 +65,36 @@ export class ArtworkGenerator {
         this.collectionId
     );
 
-    // fetch the specified collection / trait
-    const result = await Promise.all([
-      Collections.withId(this.collectionId, this.projectId),
-      Traits.all(this.projectId, this.collectionId, this.traitSetId),
-      ImageLayers.all(this.projectId, this.collectionId, this.traitSetId),
-      Conflicts.all(this.projectId, this.collectionId, this.traitSetId),
-    ]);
+    const collection = await Collections.withId(
+      this.collectionId,
+      this.projectId
+    );
+    const traits = await Traits.all(
+      this.projectId,
+      this.collectionId,
+      this.traitSetId
+    );
+    const imageLayers = await ImageLayers.all(
+      this.projectId,
+      this.collectionId,
+      this.traitSetId
+    );
+    const traitSet = this.traitSetId
+      ? await TraitSets.withId(
+          this.traitSetId,
+          this.projectId,
+          this.collectionId
+        )
+      : null;
 
-    const collection = result[0];
-    const traits = result[1];
-    const imageLayers = result[2];
-    const conflicts = result[3];
-
+    let conflicts: Conflict[] = [];
     const traitValueIdToImageLayers: { [traitValueId: string]: ImageLayer } =
       {};
+      conflicts = await Conflicts.all(
+        this.projectId,
+        this.collectionId,
+        this.traitSetId
+      );
     imageLayers.forEach((imageLayer) => {
       if (imageLayer.traitValueId) {
         traitValueIdToImageLayers[imageLayer.traitValueId] = imageLayer;
@@ -143,7 +160,7 @@ export class ArtworkGenerator {
     let composites: (ImageComposite | null)[] = [];
 
     logger.info("Generating: " + this.startIndex + " - " + this.endIndex);
-    logger.info("Trait Set: " + this.traitSetId);
+    logger.info("Trait Set (" + this.traitSetId + "): " + traitSet?.name);
     logger.info("Matching Traits: " + traits.length);
     logger.info("Matching Trait Values: " + Object.values(traitValues).length);
     logger.info("Matching Image Layers: " + imageLayers.length);
@@ -163,6 +180,8 @@ export class ArtworkGenerator {
       return [];
     }
 
+    let continuousFailures = 0;
+
     let i = this.startIndex;
     while (i < this.endIndex) {
       const compositeData = await this.generateArtworkForItem(
@@ -177,9 +196,16 @@ export class ArtworkGenerator {
       );
 
       if (!compositeData) {
-        console.log("no composite data");
+        console.error("no composite data");
+        continuousFailures++;
+
+        if (continuousFailures > 10) {
+          break;
+        }
         continue;
       }
+
+      continuousFailures = 0;
 
       const composite = await ImageComposites.create(
         compositeData,
@@ -237,11 +263,13 @@ export class ArtworkGenerator {
     let retriesRemaining = numRetries;
     let failedToFindUnusedTraitPair = false;
 
+    let hash: string = "";
+
     while (!hasUnusedTraitValuePair) {
       // generate a pair mapping trait to a random trait value
       traitValuePairs = await this.randomTraitValues(traits, traitValues);
 
-      const hash = ImageComposites.traitsHash(traitValuePairs);
+      hash = ImageComposites.traitsHash(traitValuePairs);
       hasUnusedTraitValuePair = await ImageComposites.isUniqueTraitsHash(
         hash,
         this.projectId,
@@ -253,10 +281,17 @@ export class ArtworkGenerator {
 
       if (retriesRemaining == 0) {
         failedToFindUnusedTraitPair = true;
-        console.log(
+        console.error(
           "Unable to find unused trait pair after " + numRetries + " retries."
         );
-        console.log("generated trait value pairs: " + traitValuePairs);
+        console.log(
+          "generated trait value pairs: " +
+            traitValuePairs
+              .map((pair) => {
+                return pair.trait.name + ": " + pair.traitValue?.name;
+              })
+              .join(", ")
+        );
         break;
       }
     }
@@ -284,6 +319,7 @@ export class ArtworkGenerator {
     });
 
     // composite all of the images representing trait values together into one image
+
     const sortedTraitValueImagePairs =
       this.sortTraitValuePairs(traitValueImagePairs);
 
@@ -340,7 +376,7 @@ export class ArtworkGenerator {
       const imageComposite = {
         externalURL: downloadURL,
         traits: sortedTraitValueImagePairs,
-        traitsHash: ImageComposites.traitsHash(sortedTraitValueImagePairs),
+        traitsHash: hash,
       } as ImageComposite;
 
       return imageComposite;
@@ -671,7 +707,9 @@ export class ArtworkGenerator {
     }
 
     const inputs = inputFilePaths.map((inputFilePath) => {
-      return { input: inputFilePath };
+      return {
+        input: inputFilePath,
+      };
     });
 
     return sharp(firstPath)
