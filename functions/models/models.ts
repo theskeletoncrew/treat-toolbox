@@ -113,7 +113,7 @@ export interface User {
   name: string;
   email: string;
   twitterUsername: string;
-  avatarURL: string;
+  avatarURL: string | null;
   share: number;
 }
 
