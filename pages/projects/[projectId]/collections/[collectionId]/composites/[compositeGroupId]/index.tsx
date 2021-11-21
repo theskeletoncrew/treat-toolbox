@@ -85,8 +85,10 @@ export default function IndexPage(props: Props) {
         setDownloadURL(json.url);
         setDownloadModalOpen(true);
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         console.error("Error:", error);
+        setExportingModalOpen(false);
+        alert(error.message);
       });
   }
 

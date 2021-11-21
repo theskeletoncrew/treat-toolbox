@@ -47,8 +47,8 @@ export namespace CandyMachine {
     collection: Collection,
     compositeGroupId: string,
     imageComposite: ImageComposite | null
-  ): Promise<Boolean> {
-    return new Promise<Boolean>((resolve, reject) => {
+  ): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
       console.log("constructing item " + orderNumber);
 
       const item = constructCandyMachineItem(
@@ -116,8 +116,7 @@ export namespace CandyMachine {
       symbol: collection.symbol,
       description: project.description,
       seller_fee_basis_points: collection.sellerFeeBasisPoints,
-      external_url:
-        project.url,
+      external_url: project.url,
       image: orderNumber + ".png",
       attributes: attributes,
       collection: {
@@ -142,4 +141,3 @@ export namespace CandyMachine {
     } as CandyMachineItem;
   }
 }
-

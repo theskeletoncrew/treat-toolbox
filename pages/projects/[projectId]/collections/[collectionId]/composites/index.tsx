@@ -337,13 +337,16 @@ export default function IndexPage(props: Props) {
         <ProgressModal
           title="Generating Composite Group"
           message={
+            totalGeneratedItems +
+            "/" +
+            collection.supply +
+            " generated - " +
             generatingTraitSetName +
-            ":" +
+            ": (" +
             traitSetGeneratedItems +
             "-" +
             generatingTraitSetSize +
-            " of " +
-            collection.supply
+            ")"
           }
           loadingPercent={Math.ceil(
             (100 * totalGeneratedItems) / collection.supply
