@@ -685,7 +685,7 @@ export class ArtworkGenerator {
   compositeImages(
     optInputFilePaths: (string | null)[],
     outputFilePath: string
-  ): Promise<Boolean> {
+  ): Promise<boolean> {
     const inputFilePaths = optInputFilePaths.filter((f) => f);
     if (inputFilePaths.length == 0) {
       return Promise.resolve(false);
