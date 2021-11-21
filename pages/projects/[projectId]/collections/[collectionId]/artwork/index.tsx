@@ -18,6 +18,9 @@ import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../../../../components/DestructiveModal";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { ProgressModal } from "../../../../../../components/ProgressModal";
+import { db } from "../../../../../../app-firebase";
+import { writeBatch } from "firebase/firestore";
 
 interface Props {
   project: Project;
@@ -47,9 +50,18 @@ export default function IndexPage(props: Props) {
     string | null
   >(null);
 
+  const [isSyncingModalOpen, setIsSyncingModalOpen] = useState(false);
+  const [itemSyncing, setItemSyncing] = useState(0);
+  const [totalItemsToSync, setTotalItemsToSync] = useState(0);
+  const [isSyncingCancelled, setIsSyncingCancelled] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState<string | null>(null);
+
+  const [showOnlyUnassigned, setShowOnlyUnassigned] = useState(false);
+
   const router = useRouter();
 
-  const confirmDeleteImageLayer = (
+  const confirmDeleteImageLayer = async (
     event: React.MouseEvent,
     imageLayerId: string
   ) => {
@@ -64,7 +76,10 @@ export default function IndexPage(props: Props) {
     }
     setImageLayerIdToDelete(null);
     setDeleteModalOpen(false);
-    router.reload();
+    const imageLayerElem = document.getElementById(
+      "imagelayer-" + imageLayerIdToDelete
+    );
+    imageLayerElem?.remove();
   };
 
   const cancelDeleteImageLayer = async () => {
@@ -153,18 +168,33 @@ export default function IndexPage(props: Props) {
     // STOP LOADING
   };
 
-  const syncFilenamesToTraits = async () => {
-    let updates: Promise<void>[] = [];
+  const syncTraitsToFilenames = async () => {
+    setIsSyncingCancelled(false);
 
-    let hasAlerted = false;
+    let failures: string[] = [];
 
-    imageLayers.forEach((imageLayer) => {
+    setIsSyncingModalOpen(true);
+    setTotalItemsToSync(imageLayers.length);
+
+    let batch = writeBatch(db);
+
+    let iter = 0;
+
+    for (let i = 0; i < imageLayers.length; i++) {
+      if (isSyncingCancelled) {
+        console.log("cancelled");
+        break;
+      }
+
+      const imageLayer = imageLayers[i];
+
       // strip extension from filename
       const imageName = imageLayer.name.replace(/\.[^/.]+$/, "");
       const components = imageName.split(new RegExp(/\-/, "i"));
 
       if (components.length < 2) {
-        return;
+        failures.push(imageLayer.name);
+        continue;
       }
 
       let traitSetName: string;
@@ -181,7 +211,8 @@ export default function IndexPage(props: Props) {
         });
 
         if (!traitSet) {
-          return;
+          failures.push(imageLayer.name);
+          continue;
         }
 
         traitName = components[1].toLowerCase();
@@ -199,7 +230,9 @@ export default function IndexPage(props: Props) {
       });
 
       if (!trait) {
-        return;
+        console.log("bad trait " + traitName);
+        failures.push(imageLayer.name);
+        continue;
       }
 
       const traitValue = traitValuesDict[trait.id].find((traitValue) => {
@@ -207,7 +240,13 @@ export default function IndexPage(props: Props) {
       });
 
       if (traitValue) {
-        updates.push(
+        if (
+          imageLayer.traitSetId != traitSet?.id ||
+          imageLayer.traitId != trait.id ||
+          imageLayer.traitValueId != traitValue.id
+        ) {
+          console.log(i + " needs update: " + imageLayer.name);
+
           ImageLayers.update(
             {
               traitSetId: traitSet?.id,
@@ -216,15 +255,58 @@ export default function IndexPage(props: Props) {
             },
             imageLayer.id,
             project.id,
-            collection.id
-          )
-        );
+            collection.id,
+            batch
+          );
+        }
+      } else {
+        console.log("bad trait value " + traitValueName);
+        failures.push(imageLayer.name);
+        continue;
       }
-    });
 
-    await Promise.all(updates);
-    router.reload();
+      if ((i > 0 && i % 250 == 0) || i == imageLayers.length - 1) {
+        console.log("running batch");
+        await batch.commit();
+        batch = writeBatch(db);
+        setItemSyncing(i);
+      }
+    }
+
+    setIsSyncingModalOpen(false);
+
+    if (failures.length > 0) {
+      console.log("The following images had failures:");
+      console.log(failures);
+      alert("The following images had failures:\n" + failures.join("\n"));
+    } else {
+      router.reload();
+    }
   };
+
+  const cancelSyncFilenamesToTraits = async () => {
+    setIsSyncingCancelled(true);
+    setIsSyncingModalOpen(false);
+  };
+
+  const searchChanged = async (searchValue: string) => {
+    setSearchTerm(searchValue.trim());
+  };
+
+  let filteredImageLayers: ImageLayer[];
+  if (searchTerm) {
+    filteredImageLayers = imageLayers.filter((imageLayer, i) => {
+      return imageLayer.name.toUpperCase().includes(searchTerm.toUpperCase());
+    });
+  } else {
+    filteredImageLayers = imageLayers;
+  }
+
+  if (showOnlyUnassigned) {
+    filteredImageLayers = filteredImageLayers.filter((imageLayer) => {
+      return imageLayer.traitValueId == null;
+    });
+  }
 
   if (!collection) {
     return (
@@ -324,23 +406,72 @@ export default function IndexPage(props: Props) {
                 <button
                   type="button"
                   className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  onClick={(e) => syncFilenamesToTraits()}
+                  onClick={(e) => syncTraitsToFilenames()}
                 >
                   <RefreshIcon
                     className="-ml-1 mr-1 h-5 w-5"
                     aria-hidden="true"
                   />
-                  Sync Filenames to Traits
+                  Sync Traits to Filenames
                 </button>
               </span>
+            </div>
+
+            <div className="float-left mt-4 ml-8">
+              <input
+                type="text"
+                name="search"
+                id="search"
+                onKeyPress={function (e) {
+                  if (e.code === "Enter" || e.code === "NumpadEnter") {
+                    const searchElem = document.getElementById(
+                      "search"
+                    ) as HTMLInputElement;
+                    const searchTerm = searchElem.value;
+                    searchChanged(searchTerm);
+                  }
+                }}
+                className="h-8 mr-2"
+                defaultValue=""
+                placeholder="Search Terms"
+              />
+              <button
+                type="button"
+                className="mr-4 inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                onClick={function (e) {
+                  const searchElem = document.getElementById(
+                    "search"
+                  ) as HTMLInputElement;
+                  const searchTerm = searchElem.value;
+                  searchChanged(searchTerm);
+                }}
+              >
+                Search
+              </button>
+
+              <button
+                type="button"
+                className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                onClick={function (e) {
+                  setShowOnlyUnassigned(!showOnlyUnassigned);
+                }}
+              >
+                {showOnlyUnassigned
+                  ? "Show Assigned and Unassigned"
+                  : "Show Only Unassigned"}
+              </button>
             </div>
 
             <ul
               role="list"
               className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8 clear-both px-8 py-4"
             >
-              {imageLayers.map((imageLayer) => (
-                <li key={imageLayer.id} className="relative">
+              {filteredImageLayers.map((imageLayer) => (
+                <li
+                  id={"imagelayer-" + imageLayer.id}
+                  key={imageLayer.id}
+                  className="relative"
+                >
                   <Link
                     href={
                       "/projects/" +
@@ -423,7 +554,7 @@ export default function IndexPage(props: Props) {
                       htmlFor="trait"
                       className="block text-sm font-medium text-gray-700"
                     >
-                      Associated Trait {traitsDict["-1"]?.length ?? 0}
+                      Associated Trait
                     </label>
                     <select
                       id={imageLayer.id + "-trait"}
@@ -469,7 +600,7 @@ export default function IndexPage(props: Props) {
                     >
                       <option key={"-1"} value="-1"></option>
                       {(imageLayer.traitId
-                        ? traitValuesDict[imageLayer.traitId]
+                        ? traitValuesDict[imageLayer.traitId] ?? []
                         : []
                       ).map((traitValue) => (
                         <option key={traitValue.id} value={traitValue.id}>
@@ -482,6 +613,16 @@ export default function IndexPage(props: Props) {
               ))}
             </ul>
           </main>
+
+          <ProgressModal
+            title="Syncing Traits to Filenames"
+            message={
+              "Syncing " + itemSyncing + " of " + totalItemsToSync + "..."
+            }
+            loadingPercent={Math.ceil((100 * itemSyncing) / totalItemsToSync)}
+            cancelAction={cancelSyncFilenamesToTraits}
+            show={isSyncingModalOpen}
+          />
 
           <DestructiveModal
             title="Delete Artwork"

@@ -12,6 +12,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  WriteBatch,
 } from "firebase/firestore";
 
 export default interface ImageLayer {
@@ -121,7 +122,8 @@ export namespace ImageLayers {
     updates: { [x: string]: any },
     id: string,
     projectId: string,
-    collectionId: string
+    collectionId: string,
+    batch: WriteBatch | null = null
   ): Promise<void> {
     const docRef = doc(
       db,
@@ -138,7 +140,11 @@ export namespace ImageLayers {
         id
     );
 
-    return await updateDoc(docRef, updates);
+    if (batch) {
+      batch.update(docRef, updates);
+    } else {
+      return await updateDoc(docRef, updates);
+    }
   }
 
   export async function remove(
