@@ -109,10 +109,23 @@ export namespace CandyMachine {
           } as TraitValuePair;
         }) ?? [];
 
+    // shift for 0 index
     const humanReadableOrderNumber = orderNumber + 1;
 
+    // swap {{METADATA_TITLE}} with METADATA_VALUE
+    const name = collection.nftName?.replace(
+      /{{([\w ]*)}}/g,
+      function (_, key) {
+        return key.toUpperCase() == "NUMBER"
+          ? humanReadableOrderNumber.toString()
+          : attributes.find((attribute) => {
+              return attribute.trait_type.toUpperCase() == key.toUpperCase();
+            })?.value ?? "";
+      }
+    );
+
     return {
-      name: collection.nftName + " #" + humanReadableOrderNumber, // shift for 0 index
+      name: name ?? " #" + humanReadableOrderNumber,
       symbol: collection.symbol,
       description: project.description,
       seller_fee_basis_points: collection.sellerFeeBasisPoints,
