@@ -251,7 +251,6 @@ export namespace ImageComposites {
       })
       .reduce(function (result, traitPair) {
         if (
-          traitPair.trait.isAlwaysUnique ||
           traitPair.trait.excludeFromDuplicateDetection ||
           traitPair.traitValue == null
         ) {
