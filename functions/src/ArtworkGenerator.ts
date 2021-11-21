@@ -199,34 +199,34 @@ export class ArtworkGenerator {
           );
           break;
 
-      if (!compositeData) {
-        console.error("no composite data");
+      if (compositeData) {
+        continuousFailures = 0;
+
+        const composite = await ImageComposites.create(
+          compositeData,
+          this.projectId,
+          this.collectionId,
+          this.compositeGroupId
+        );
+
+        composites.push(composite);
+
+        // remove any possible values for always unique traits
+        // so that they can only be used once
+        traitValues = this.removeUsedAlwaysUniqueTraitValues(
+          traits,
+          traitValues,
+          composite
+        );
+      } else {
         continuousFailures++;
+        console.error("no composite data");
 
         if (continuousFailures > 10) {
           break;
         }
         continue;
       }
-
-      continuousFailures = 0;
-
-      const composite = await ImageComposites.create(
-        compositeData,
-        this.projectId,
-        this.collectionId,
-        this.compositeGroupId
-      );
-
-      composites.push(composite);
-
-      // remove any possible values for always unique traits
-      // so that they can only be used once
-      traitValues = this.removeUsedAlwaysUniqueTraitValues(
-        traits,
-        traitValues,
-        composite
-      );
 
       i++;
     }
