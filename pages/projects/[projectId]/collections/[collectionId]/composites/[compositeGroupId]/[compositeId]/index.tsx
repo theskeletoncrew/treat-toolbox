@@ -132,18 +132,22 @@ export default function IndexPage(props: Props) {
                     </div>
                     <div className="float-left align-top p-4 w-1/2">
                       <ul>
-                        {composite.traits.map((traitValuePair, i) => (
-                          <li
-                            key={i}
-                            className="border-2 rounded-lg text-center p-4 float-left m-4"
-                          >
-                            <strong>
-                              {traitValuePair.trait.name.toUpperCase()}
-                            </strong>
-                            <br />
-                            {traitValuePair.traitValue?.name ?? "None"}
-                          </li>
-                        ))}
+                        {composite.traits
+                          .filter((pair) => {
+                            return !pair.trait.isArtworkOnly;
+                          })
+                          .map((traitValuePair, i) => (
+                            <li
+                              key={i}
+                              className="border-2 rounded-lg text-center p-4 float-left m-4"
+                            >
+                              <strong>
+                                {traitValuePair.trait.name.toUpperCase()}
+                              </strong>
+                              <br />
+                              {traitValuePair.traitValue?.name ?? "None"}
+                            </li>
+                          ))}
                       </ul>
 
                       <br className="clear-both" />
