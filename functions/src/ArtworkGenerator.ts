@@ -184,16 +184,19 @@ export class ArtworkGenerator {
 
     let i = this.startIndex;
     while (i < this.endIndex) {
-      const compositeData = await this.generateArtworkForItem(
-        i,
-        collection,
-        traits,
-        traitValues,
-        traitValueIdToImageLayers,
-        imageLayers,
-        conflicts,
-        projectDownloadPath
-      );
+      let compositeData: ImageComposite | null;
+          compositeData = await this.layeredArtworkForItem(
+            i,
+            collection,
+            traitSet,
+            traits,
+            traitValues,
+            traitValueIdToImageLayers,
+            imageLayers,
+            conflicts,
+            projectDownloadPath
+          );
+          break;
 
       if (!compositeData) {
         console.error("no composite data");
@@ -245,9 +248,10 @@ export class ArtworkGenerator {
     return composites;
   }
 
-  async generateArtworkForItem(
+  async layeredArtworkForItem(
     itemIndex: number,
     collection: Collection,
+    traitSet: TraitSet | null,
     traits: Trait[],
     traitValues: { [traitId: string]: TraitValue[] },
     traitValueIdToImageLayers: { [traitValueId: string]: ImageLayer },
@@ -338,7 +342,7 @@ export class ArtworkGenerator {
       itemIndex + ".png"
     );
 
-    const succeeded = await this.compositeImages(
+    let succeeded = await this.compositeLayeredImages(
       inputFilePaths,
       outputFilePath
     );
@@ -682,7 +686,7 @@ export class ArtworkGenerator {
     return orderedImageLayers;
   }
 
-  compositeImages(
+  compositeLayeredImages(
     optInputFilePaths: (string | null)[],
     outputFilePath: string
   ): Promise<boolean> {
