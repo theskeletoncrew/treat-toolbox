@@ -337,6 +337,28 @@ export namespace Traits {
   }
 }
 
+export namespace TraitSets {
+  export async function withId(
+    traitSetId: string,
+    projectId: string,
+    collectionId: string
+  ): Promise<TraitSet> {
+    const traitSetDoc = await db
+      .doc(
+        "projects/" +
+          projectId +
+          "/collections/" +
+          collectionId +
+          "/traitSets/" +
+          traitSetId
+      )
+      .get();
+    const traitSet = traitSetDoc.data() as TraitSet;
+    traitSet.id = traitSetDoc.id;
+    return traitSet;
+  }
+}
+
 export namespace TraitValues {
   /**
    * fetch all trait values for a given trait
