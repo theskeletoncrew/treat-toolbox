@@ -424,40 +424,28 @@ export class ArtworkGenerator {
         continue;
       }
 
-      let trait1ValueIndex = -1;
-      if (conflict.trait1ValueId !== null) {
-        trait1ValueIndex = traitValuePairs.findIndex(
-          (pair) =>
-            pair.trait.id == conflict.trait1Id &&
-            pair.traitValue?.id == conflict.trait1ValueId
-        );
-        if (trait1ValueIndex == -1) {
-          continue;
-        }
+      let trait1Value = traitValuePairs[trait1Index].traitValue;
+      if (
+        (conflict.trait1ValueId !== null &&
+          conflict.trait1ValueId !== trait1Value?.id) ||
+        trait1Value?.id == null
+      ) {
+        continue;
       }
 
-      let trait2ValueIndex = -1;
-      if (conflict.trait2ValueId !== null) {
-        trait2ValueIndex = traitValuePairs.findIndex(
-          (pair) =>
-            pair.trait.id == conflict.trait2Id &&
-            pair.traitValue?.id == conflict.trait2ValueId
-        );
-        if (trait2ValueIndex == -1) {
-          continue;
-        }
+      let trait2Value = traitValuePairs[trait2Index].traitValue;
+      if (
+        (conflict.trait2ValueId !== null &&
+          conflict.trait2ValueId !== trait2Value?.id) ||
+        trait2Value?.id == null
+      ) {
+        continue;
       }
 
       const trait1Name = traitValuePairs[trait1Index].trait.name;
       const trait2Name = traitValuePairs[trait2Index].trait.name;
-      const trait1ValueName =
-        trait1ValueIndex == -1
-          ? "Any"
-          : traitValuePairs[trait1ValueIndex].traitValue?.name ?? "Any";
-      const trait2ValueName =
-        trait2ValueIndex == -1
-          ? "Any"
-          : traitValuePairs[trait2ValueIndex].traitValue?.name ?? "Any";
+      const trait1ValueName = conflict.trait1ValueId ? trait1Value.name : "Any";
+      const trait2ValueName = conflict.trait2ValueId ? trait2Value.name : "Any";
 
       let resolution: string;
 
@@ -498,11 +486,15 @@ export class ArtworkGenerator {
           trait1Name +
           ":" +
           trait1ValueName +
-          " and " +
+          " (" +
+          trait1Value.name +
+          ") and " +
           trait2Name +
           ":" +
           trait2ValueName +
-          " " +
+          " (" +
+          trait2Value.name +
+          ") " +
           resolution
       );
     }
