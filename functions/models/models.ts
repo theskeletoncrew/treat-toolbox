@@ -200,8 +200,6 @@ export namespace ImageComposites {
     collectionId: string,
     compositeGroupId: string
   ): Promise<ImageComposite> {
-    imageComposite.traitsHash = traitsHash(imageComposite.traits);
-
     const docQuery = db.collection(
       "/projects/" +
         projectId +
