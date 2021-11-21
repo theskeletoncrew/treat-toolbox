@@ -71,6 +71,13 @@ export interface Project {
   url: string;
 }
 
+// GENERIC INTERFACES
+
+export interface RarityValue {
+  id: string;
+  rarity: number;
+}
+
 export interface Trait {
   id: string;
   name: string;

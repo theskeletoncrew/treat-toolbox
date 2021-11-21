@@ -11,6 +11,7 @@ import {
   ImageLayer,
   ImageLayers,
   OrderedImageLayer,
+  RarityValue,
   Trait,
   Traits,
   TraitSets,
@@ -396,7 +397,7 @@ export class ArtworkGenerator {
     // for each trait fetch a randomly chosen value
     // based upon the distribution of rarity
     const traitValueTasks = traits.map(async (trait) => {
-      return await this.randomValue(
+      return await this.randomValue<TraitValue>(
         traitValues[trait.id],
         trait.isAlwaysUnique
       ).then(
@@ -465,7 +466,7 @@ export class ArtworkGenerator {
           break;
         case ConflictResolutionType.Trait1Random:
           const pair1 = traitValuePairs[trait1Index];
-          const newRandomValue1 = await this.randomValue(
+          const newRandomValue1 = await this.randomValue<TraitValue>(
             traitValuesDict[pair1.trait.id],
             pair1.trait.isAlwaysUnique,
             pair1.traitValue?.id
@@ -475,7 +476,7 @@ export class ArtworkGenerator {
           break;
         case ConflictResolutionType.Trait2Random:
           const pair2 = traitValuePairs[trait2Index];
-          const newRandomValue2 = await this.randomValue(
+          const newRandomValue2 = await this.randomValue<TraitValue>(
             traitValuesDict[pair2.trait.id],
             pair2.trait.isAlwaysUnique,
             pair2.traitValue?.id
@@ -543,11 +544,11 @@ export class ArtworkGenerator {
    * @param values array of possible trait values each with specified % rarity
    * @returns a secure pseudorandom value from the array factoring in rarity
    */
-  async randomValue(
-    values: TraitValue[],
+  async randomValue<T extends RarityValue>(
+    values: T[],
     isTraitAlwaysUnique: boolean,
-    excludeTraitValueId: string | null = null
-  ): Promise<TraitValue | null> {
+    excludeValueId: string | null = null
+  ): Promise<T | null> {
     if (isTraitAlwaysUnique) {
       const randomIndex = Math.floor(Math.random() * values.length);
       const randomValue = values[randomIndex];
@@ -557,7 +558,7 @@ export class ArtworkGenerator {
 
     const precision = TRAITVALUES_RARITY_MAX_PRECISION;
 
-    let value: TraitValue | null;
+    let value: T | null;
 
     const maxAttempts = 10;
     let attempts = 0;
@@ -585,7 +586,7 @@ export class ArtworkGenerator {
       });
 
       attempts++;
-    } while (excludeTraitValueId != null && value?.id === excludeTraitValueId);
+    } while (excludeValueId != null && value?.id === excludeValueId);
 
     return value;
   }
@@ -632,8 +633,8 @@ export class ArtworkGenerator {
       });
   }
 
-  sortTraitValuePairs(traitValuePairs: TraitValuePair[]): TraitValuePair[] {
-    return traitValuePairs.sort((a, b) => {
+  sortTraitValuePairs(pairs: TraitValuePair[]): TraitValuePair[] {
+    return pairs.sort((a, b) => {
       const zIndexA = a.trait.zIndex;
       const zIndexB = b.trait.zIndex;
       if (zIndexA == zIndexB) return 0;
