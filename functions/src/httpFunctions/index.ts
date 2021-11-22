@@ -18,6 +18,9 @@ api.get("/generate-artwork", (req, res) => {
   const endIndex = startIndex + batchSize;
 
   if (!projectId || !collectionId || !compositeGroupId) {
+    console.log(
+      "unable to find prerequisite project/collection/composite group"
+    );
     res.status(400).send();
     return;
   }
