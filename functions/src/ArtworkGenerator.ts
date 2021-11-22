@@ -91,11 +91,11 @@ export class ArtworkGenerator {
     let conflicts: Conflict[] = [];
     const traitValueIdToImageLayers: { [traitValueId: string]: ImageLayer } =
       {};
-      conflicts = await Conflicts.all(
-        this.projectId,
-        this.collectionId,
-        this.traitSetId
-      );
+    conflicts = await Conflicts.all(
+      this.projectId,
+      this.collectionId,
+      this.traitSetId
+    );
     imageLayers.forEach((imageLayer) => {
       if (imageLayer.traitValueId) {
         traitValueIdToImageLayers[imageLayer.traitValueId] = imageLayer;
@@ -186,18 +186,17 @@ export class ArtworkGenerator {
     let i = this.startIndex;
     while (i < this.endIndex) {
       let compositeData: ImageComposite | null;
-          compositeData = await this.layeredArtworkForItem(
-            i,
-            collection,
-            traitSet,
-            traits,
-            traitValues,
-            traitValueIdToImageLayers,
-            imageLayers,
-            conflicts,
-            projectDownloadPath
-          );
-          break;
+      compositeData = await this.layeredArtworkForItem(
+        i,
+        collection,
+        traitSet,
+        traits,
+        traitValues,
+        traitValueIdToImageLayers,
+        imageLayers,
+        conflicts,
+        projectDownloadPath
+      );
 
       if (compositeData) {
         continuousFailures = 0;
