@@ -33,6 +33,7 @@ const schema = yup
     share: yup
       .number()
       .typeError("Must be a positive whole number between 0 and 100")
+      .integer("Must be a positive whole number between 0 and 100")
       .positive("Must be a positive whole number between 0 and 100")
       .max(100, "Must be a positive whole number between 0 and 100")
       .required("This field is required"),
