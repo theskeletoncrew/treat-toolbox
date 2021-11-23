@@ -19,17 +19,8 @@ export default interface Collection {
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;
-  status: DropStatus;
-  startDate: Date | null;
   userGroupId: string;
   nftName: string;
-}
-
-
-export enum DropStatus {
-  Pending = 0,
-  Active,
-  Ended,
 }
 
 export namespace Collections {
@@ -50,12 +41,17 @@ export namespace Collections {
     const querySnapshot = await getDocs(collectionsQuery);
 
     const collections = querySnapshot.docs.map((collectionDoc) => {
-      const collection = collectionDoc.data() as Collection;
+      const collection = migrate(collectionDoc.data()) as Collection;
       collection.id = collectionDoc.id;
       return collection;
     });
 
     return collections;
+  }
+
+  function migrate(collection: any) {
+    delete collection.startDate;
+    return collection;
   }
 
   export async function withId(
@@ -74,7 +70,7 @@ export namespace Collections {
     );
 
     const collectionDoc = await getDoc(collectionDocRef);
-    const collection = collectionDoc.data() as Collection;
+    const collection = migrate(collectionDoc.data()) as Collection;
     collection.id = collectionDoc.id;
     return collection;
   }

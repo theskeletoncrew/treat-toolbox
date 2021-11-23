@@ -9,8 +9,6 @@ export interface Collection {
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;
-  status: DropStatus;
-  startDate: Date | null;
   userGroupId: string;
 }
 
@@ -30,12 +28,6 @@ export enum ConflictResolutionType {
   Trait1None,
   Trait2Random,
   Trait1Random,
-}
-
-export enum DropStatus {
-  Pending = 0,
-  Active,
-  Ended,
 }
 
 export interface ImageComposite {
