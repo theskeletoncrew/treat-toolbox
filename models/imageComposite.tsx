@@ -25,6 +25,7 @@ export default interface ImageComposite {
   externalURL: string | null;
   traits: TraitValuePair[];
   traitsHash: string;
+  additionalMetadataEntries: { [attributeTitle: string]: string };
 }
 
 export interface TraitValuePair {

@@ -19,6 +19,7 @@ export default interface TraitSet {
   id: string;
   name: string;
   supply: number;
+  metadataEntries: { [attributeTitle: string]: string };
 }
 
 export namespace TraitSets {

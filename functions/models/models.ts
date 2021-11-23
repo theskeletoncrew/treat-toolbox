@@ -35,6 +35,7 @@ export interface ImageComposite {
   externalURL: string | null;
   traits: TraitValuePair[];
   traitsHash: string;
+  additionalMetadataEntries: { [attributeTitle: string]: string };
 }
 
 export interface ImageLayer {
@@ -85,6 +86,7 @@ export interface TraitSet {
   id: string;
   name: string;
   supply: number;
+  metadataEntries: { [attributeTitle: string]: string };
 }
 
 export interface TraitValue {

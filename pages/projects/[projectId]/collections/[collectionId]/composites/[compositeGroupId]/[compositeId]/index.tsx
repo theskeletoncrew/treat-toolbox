@@ -148,6 +148,22 @@ export default function IndexPage(props: Props) {
                               {traitValuePair.traitValue?.name ?? "None"}
                             </li>
                           ))}
+                        {composite.additionalMetadataEntries
+                          ? Object.keys(
+                              composite.additionalMetadataEntries
+                            ).map((entryKey, i) => (
+                              <li
+                                key={i}
+                                className="border-2 rounded-lg text-center p-4 float-left m-4"
+                              >
+                                <strong>{entryKey.toUpperCase()}</strong>
+                                <br />
+                                {composite.additionalMetadataEntries[
+                                  entryKey
+                                ] ?? "None"}
+                              </li>
+                            ))
+                          : ""}
                       </ul>
 
                       <br className="clear-both" />

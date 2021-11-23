@@ -97,7 +97,7 @@ export namespace CandyMachine {
     collection: Collection,
     imageComposite: ImageComposite | null
   ): CandyMachineItem {
-    const attributes =
+    let attributes =
       imageComposite?.traits
         .filter((traitPair) => {
           return !traitPair.trait.isArtworkOnly;
@@ -108,6 +108,16 @@ export namespace CandyMachine {
             value: elem.traitValue?.name ?? "None",
           } as TraitValuePair;
         }) ?? [];
+
+    const additionalMetadataEntries = imageComposite?.additionalMetadataEntries;
+    if (additionalMetadataEntries) {
+      Object.keys(additionalMetadataEntries).forEach((key) => {
+        attributes.push({
+          trait_type: key,
+          value: additionalMetadataEntries[key] ?? "None",
+        } as TraitValuePair);
+      });
+    }
 
     // shift for 0 index
     const humanReadableOrderNumber = orderNumber + 1;

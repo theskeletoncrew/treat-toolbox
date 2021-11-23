@@ -182,6 +182,12 @@ export default function IndexPage(props: Props) {
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Metadata
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           ></th>
                         </tr>
                       </thead>
@@ -212,6 +218,21 @@ export default function IndexPage(props: Props) {
                               <td className="px-6 py-4" width="100">
                                 <div className="text-sm text-gray-500 overflow-ellipsis">
                                   {traitSet.supply || "0"}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="text-sm text-gray-500 overflow-ellipsis">
+                                  {!traitSet.metadataEntries
+                                    ? ""
+                                    : Object.keys(traitSet.metadataEntries)
+                                        .map((key) => {
+                                          return (
+                                            key +
+                                            ": " +
+                                            traitSet.metadataEntries[key]
+                                          );
+                                        })
+                                        .join(", ")}
                                 </div>
                               </td>
                               <td align="right" width="100">
