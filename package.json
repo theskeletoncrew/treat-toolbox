@@ -12,6 +12,8 @@
     "@babel/core": "^7.15.0",
     "@headlessui/react": "^1.4.0",
     "@heroicons/react": "^1.0.4",
+    "@hookform/resolvers": "^2.8.3",
+    "@solana/web3.js": "^1.30.2",
     "@tailwindcss/aspect-ratio": "^0.2.1",
     "@tailwindcss/forms": "^0.3.3",
     "@tailwindcss/typography": "^0.4.1",
@@ -31,8 +33,10 @@
     "react-cookie": "^4.1.1",
     "react-dom": "17.0.2",
     "react-firebase-hooks": "^3.0.4",
+    "react-hook-form": "^7.19.5",
     "superjson": "^1.7.5",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@types/react": "17.0.19",

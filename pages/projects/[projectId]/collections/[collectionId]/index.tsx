@@ -3,10 +3,7 @@ import Layout from "../../../../../components/Layout";
 import DropsSubnav from "../../../../../components/DropsSubnav";
 import { PencilAltIcon } from "@heroicons/react/outline";
 import Project, { Projects } from "../../../../../models/project";
-import Collection, {
-  Collections,
-  DropStatus,
-} from "../../../../../models/collection";
+import Collection, { Collections } from "../../../../../models/collection";
 import UserGroup, { UserGroups } from "../../../../../models/userGroup";
 import { GetServerSideProps } from "next";
 

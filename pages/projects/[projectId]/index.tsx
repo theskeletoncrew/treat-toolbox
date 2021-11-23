@@ -7,10 +7,7 @@ import {
   DocumentAddIcon,
 } from "@heroicons/react/outline";
 import Project, { Projects } from "../../../models/project";
-import Collection, {
-  Collections,
-  DropStatus,
-} from "../../../models/collection";
+import Collection, { Collections } from "../../../models/collection";
 import Header from "../../../components/Header";
 import { GetServerSideProps } from "next";
 import { DestructiveModal } from "../../../components/DestructiveModal";

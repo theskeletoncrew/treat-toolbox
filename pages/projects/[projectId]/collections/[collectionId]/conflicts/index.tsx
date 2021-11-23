@@ -171,12 +171,16 @@ export default function IndexPage(props: Props) {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            Trait Set
-                          </th>
+                          {traitSets.length > 0 ? (
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Trait Set
+                            </th>
+                          ) : (
+                            ""
+                          )}
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -251,17 +255,22 @@ export default function IndexPage(props: Props) {
                                 key={conflict.id}
                                 className="hover:bg-gray-100 cursor-pointer"
                               >
-                                <td className="px-6 py-4">
-                                  <div className="text-sm text-gray-900">
-                                    {conflict?.traitSetId
-                                      ? traitSets.find((traitSet) => {
-                                          return (
-                                            traitSet.id == conflict?.traitSetId
-                                          );
-                                        })?.name
-                                      : ""}
-                                  </div>
-                                </td>
+                                {traitSets.length > 0 ? (
+                                  <td className="px-6 py-4">
+                                    <div className="text-sm text-gray-900">
+                                      {conflict?.traitSetId
+                                        ? traitSets.find((traitSet) => {
+                                            return (
+                                              traitSet.id ==
+                                              conflict?.traitSetId
+                                            );
+                                          })?.name
+                                        : ""}
+                                    </div>
+                                  </td>
+                                ) : (
+                                  ""
+                                )}
                                 <td className="px-6 py-4">
                                   <div className="text-sm text-gray-900">
                                     {conflict?.trait1Id

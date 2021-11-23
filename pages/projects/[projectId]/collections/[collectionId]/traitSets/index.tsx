@@ -153,6 +153,12 @@ export default function IndexPage(props: Props) {
                 </Link>
               </span>
             </div>
+            <div className="ml-10 mt-4 px-4 float-left">
+              <h1>
+                Total Supply:{" "}
+                {traitSets.map((a) => a.supply).reduce((a, b) => a + b)}
+              </h1>
+            </div>
 
             <div className="flex flex-col clear-both px-8 py-4">
               <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

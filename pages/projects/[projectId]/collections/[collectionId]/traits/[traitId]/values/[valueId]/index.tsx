@@ -9,9 +9,8 @@ import Trait, { Traits } from "../../../../../../../../../models/trait";
 import TraitValue, {
   TraitValues,
 } from "../../../../../../../../../models/traitValue";
+import { TraitValueForm } from "../../../../../../../../../components/Forms/TraitValue";
 import { GetServerSideProps } from "next";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/router";
 
 interface Props {
   project: Project;
@@ -27,47 +26,6 @@ export default function EditPage(props: Props) {
   const collection = props.collection;
   const trait = props.trait;
   const traitValue = props.traitValue;
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const router = useRouter();
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    const data = new FormData(event.target as HTMLFormElement);
-
-    setIsSubmitting(true);
-
-    const name = data.get("name")?.toString().trim();
-    const rarity = parseFloat(data.get("rarity")?.toString().trim() ?? "0");
-
-    await TraitValues.update(
-      {
-        name: name,
-        rarity: trait.isAlwaysUnique ? -1 : rarity,
-      },
-      traitValue.id,
-      project.id,
-      collection.id,
-      trait.id
-    );
-
-    setIsSubmitting(false);
-
-    router.push(
-      {
-        pathname:
-          "/projects/" +
-          project.id +
-          "/collections/" +
-          collection.id +
-          "/traits/" +
-          trait.id,
-        query: {},
-      },
-      undefined,
-      { shallow: false }
-    );
-  };
 
   return (
     <Layout
@@ -87,58 +45,13 @@ export default function EditPage(props: Props) {
               }
             />
             <div className="mt-5 md:mt-0 md:col-span-2">
-              <form action="#" method="POST" onSubmit={onSubmit}>
-                <div className="shadow sm:rounded-md sm:overflow-hidden">
-                  <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        id="name"
-                        defaultValue={traitValue.name}
-                        placeholder="Blue"
-                        className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
-                      />
-                    </div>
-
-                    {trait.isAlwaysUnique ? (
-                      ""
-                    ) : (
-                      <div>
-                        <label
-                          htmlFor="rarity"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Rarity
-                        </label>
-                        <input
-                          type="text"
-                          name="rarity"
-                          id="rarity"
-                          defaultValue={traitValue.rarity}
-                          placeholder="0.5"
-                          className="mt-1 w-20 block shadow-sm sm:text-sm rounded-md"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-                    <button
-                      type="submit"
-                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </form>
+              <TraitValueForm
+                isEdit={true}
+                traitValue={traitValue}
+                projectId={project.id}
+                collectionId={collection.id}
+                trait={trait}
+              />
             </div>
           </div>
         </div>

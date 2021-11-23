@@ -52,7 +52,6 @@ export namespace Collections {
     const collections = querySnapshot.docs.map((collectionDoc) => {
       const collection = collectionDoc.data() as Collection;
       collection.id = collectionDoc.id;
-      collection.startDate = null;
       return collection;
     });
 
@@ -77,7 +76,6 @@ export namespace Collections {
     const collectionDoc = await getDoc(collectionDocRef);
     const collection = collectionDoc.data() as Collection;
     collection.id = collectionDoc.id;
-    collection.startDate = null;
     return collection;
   }
 
