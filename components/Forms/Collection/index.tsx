@@ -19,6 +19,14 @@ interface Props {
 const schema = yup
   .object({
     name: yup.string().trim().required("This field is required"),
+    type: yup
+      .number()
+      .oneOf([
+        CollectionType.Generative,
+        CollectionType.Prerendered,
+        // CollectionType.Tilemapped,
+      ])
+      .required("This field is required"),
     supply: yup
       .number()
       .typeError("Must be a positive whole number")
@@ -124,6 +132,27 @@ export const CollectionForm: React.FC<Props> = ({
             &#123;&#123;METADATA_TITLE&#125;&#125; or
             &#123;&#123;NUMBER&#125;&#125; for item number
           </p>
+        </div>
+
+        <div>
+          <label
+            htmlFor="type"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Collection Type
+          </label>
+          <select
+            {...register("type")}
+            id="type"
+            className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
+          >
+            <option value={CollectionType.Generative}>Generative</option>
+            <option value={CollectionType.Prerendered}>Prerendered</option>
+            {/* <option value={CollectionType.Tilemapped}>Tilemapped</option> */}
+          </select>
+          {errors.type && (
+            <span className=" text-red-800 text-xs">{errors.type.message}</span>
+          )}
         </div>
 
         <div className="col-span-6 sm:col-span-4">

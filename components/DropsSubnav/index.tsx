@@ -22,20 +22,12 @@ const tabs: Tab[] = [
   {
     id: "traitSets",
     name: "Trait Sets",
-    validTypes: [
-      CollectionType.Generative,
-      CollectionType.Prerendered,
-      CollectionType.Tilemapped,
-    ],
+    validTypes: [CollectionType.Generative, CollectionType.Tilemapped],
   },
   {
     id: "traits",
     name: "Traits",
-    validTypes: [
-      CollectionType.Generative,
-      CollectionType.Prerendered,
-      CollectionType.Tilemapped,
-    ],
+    validTypes: [CollectionType.Generative, CollectionType.Tilemapped],
   },
   {
     id: "tilemaps",
@@ -54,7 +46,7 @@ const tabs: Tab[] = [
   {
     id: "conflicts",
     name: "Conflicts",
-    validTypes: [CollectionType.Generative, CollectionType.Prerendered],
+    validTypes: [CollectionType.Generative],
   },
   {
     id: "composites",
@@ -80,7 +72,7 @@ interface Props {
 export default function DropsSubnav(props: Props) {
   const { project, collection, section } = props;
 
-  const collectionType = collection.type ?? "Generative";
+  const collectionType = collection.type ?? CollectionType.Generative;
 
   return (
     <>
