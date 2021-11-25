@@ -16,11 +16,18 @@ import { Projects } from "./project";
 export default interface Collection {
   id: string;
   name: string;
+  type: CollectionType;
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;
   userGroupId: string;
   nftName: string;
+}
+
+export enum CollectionType {
+  Generative = 0,
+  Prerendered,
+  Tilemapped,
 }
 
 export namespace Collections {

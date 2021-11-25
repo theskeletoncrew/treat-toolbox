@@ -1,15 +1,70 @@
 import Link from "next/dist/client/link";
 import Header from "../Header";
 import Project from "../../models/project";
-import Collection from "../../models/collection";
+import Collection, { CollectionType } from "../../models/collection";
 
-const tabs = [
-  { id: "details", name: "Details" },
-  { id: "traitSets", name: "Trait Sets" },
-  { id: "traits", name: "Traits" },
-  { id: "artwork", name: "Artwork" },
-  { id: "conflicts", name: "Conflicts" },
-  { id: "composites", name: "Composites" },
+interface Tab {
+  id: string;
+  name: string;
+  validTypes: CollectionType[];
+}
+
+const tabs: Tab[] = [
+  {
+    id: "details",
+    name: "Details",
+    validTypes: [
+      CollectionType.Generative,
+      CollectionType.Prerendered,
+      CollectionType.Tilemapped,
+    ],
+  },
+  {
+    id: "traitSets",
+    name: "Trait Sets",
+    validTypes: [
+      CollectionType.Generative,
+      CollectionType.Prerendered,
+      CollectionType.Tilemapped,
+    ],
+  },
+  {
+    id: "traits",
+    name: "Traits",
+    validTypes: [
+      CollectionType.Generative,
+      CollectionType.Prerendered,
+      CollectionType.Tilemapped,
+    ],
+  },
+  {
+    id: "tilemaps",
+    name: "Tile Maps",
+    validTypes: [CollectionType.Tilemapped],
+  },
+  {
+    id: "artwork",
+    name: "Artwork",
+    validTypes: [
+      CollectionType.Generative,
+      CollectionType.Prerendered,
+      CollectionType.Tilemapped,
+    ],
+  },
+  {
+    id: "conflicts",
+    name: "Conflicts",
+    validTypes: [CollectionType.Generative, CollectionType.Prerendered],
+  },
+  {
+    id: "composites",
+    name: "Composites",
+    validTypes: [
+      CollectionType.Generative,
+      CollectionType.Prerendered,
+      CollectionType.Tilemapped,
+    ],
+  },
 ];
 
 function classNames(...classes: any[]) {
@@ -24,6 +79,8 @@ interface Props {
 
 export default function DropsSubnav(props: Props) {
   const { project, collection, section } = props;
+
+  const collectionType = collection.type ?? "Generative";
 
   return (
     <>
@@ -40,9 +97,13 @@ export default function DropsSubnav(props: Props) {
               className="block w-full pl-3 pr-10 py-2 text-base focus:outline-none sm:text-sm rounded-md"
               defaultValue={tabs.find((tab) => tab.id == section)?.name}
             >
-              {tabs.map((tab) => (
-                <option key={tab.name}>{tab.name}</option>
-              ))}
+              {tabs.map((tab) => {
+                tab.validTypes.includes(collection.type) ? (
+                  <option key={tab.name}>{tab.name}</option>
+                ) : (
+                  ""
+                );
+              })}
             </select>
           </div>
           <div className="hidden sm:block">
@@ -50,7 +111,7 @@ export default function DropsSubnav(props: Props) {
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {tabs.map((tab) => {
                   const tabPath = tab.id == "details" ? "" : "/" + tab.id;
-                  return (
+                  return tab.validTypes.includes(collectionType) ? (
                     <Link
                       key={tab.name}
                       href={{
@@ -75,6 +136,8 @@ export default function DropsSubnav(props: Props) {
                         {tab.name}
                       </a>
                     </Link>
+                  ) : (
+                    ""
                   );
                 })}
               </nav>

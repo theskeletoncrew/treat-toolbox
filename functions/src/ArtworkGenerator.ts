@@ -3,6 +3,7 @@ import { storage } from "../models/firebase";
 import {
   Collection,
   Collections,
+  CollectionType,
   Conflict,
   Conflicts,
   ConflictResolutionType,
@@ -91,11 +92,15 @@ export class ArtworkGenerator {
     let conflicts: Conflict[] = [];
     const traitValueIdToImageLayers: { [traitValueId: string]: ImageLayer } =
       {};
+
+    if (collection.type == CollectionType.Generative) {
     conflicts = await Conflicts.all(
       this.projectId,
       this.collectionId,
-      this.traitSetId
-    );
+        this.traitSetId
+      );
+    }
+
     imageLayers.forEach((imageLayer) => {
       if (imageLayer.traitValueId) {
         traitValueIdToImageLayers[imageLayer.traitValueId] = imageLayer;
@@ -186,6 +191,8 @@ export class ArtworkGenerator {
     let i = this.startIndex;
     while (i < this.endIndex) {
       let compositeData: ImageComposite | null;
+      switch (collection.type) {
+        case CollectionType.Generative:
       compositeData = await this.layeredArtworkForItem(
         i,
         collection,
@@ -197,6 +204,8 @@ export class ArtworkGenerator {
         conflicts,
         projectDownloadPath
       );
+          break;
+      }
 
       if (compositeData) {
         continuousFailures = 0;

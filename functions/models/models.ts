@@ -5,6 +5,7 @@ import { db } from "./firebase";
 export interface Collection {
   id: string;
   name: string;
+  type: CollectionType;
   nftName: string;
   supply: number;
   sellerFeeBasisPoints: number;
@@ -12,6 +13,11 @@ export interface Collection {
   userGroupId: string;
 }
 
+export enum CollectionType {
+  Generative = 0,
+  Prerendered,
+  Tilemapped,
+}
 
 export interface Conflict {
   id: string;
