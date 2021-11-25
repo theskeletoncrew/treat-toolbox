@@ -60,13 +60,6 @@ export class ArtworkGenerator {
   }
 
   async generate(): Promise<(ImageComposite | null)[]> {
-    logger.info(
-      "Generate Artwork for project: " +
-        this.projectId +
-        " collection: " +
-        this.collectionId
-    );
-
     const collection = await Collections.withId(
       this.collectionId,
       this.projectId
@@ -94,12 +87,24 @@ export class ArtworkGenerator {
       {};
 
     if (collection.type == CollectionType.Generative) {
-    conflicts = await Conflicts.all(
-      this.projectId,
-      this.collectionId,
+      conflicts = await Conflicts.all(
+        this.projectId,
+        this.collectionId,
         this.traitSetId
       );
     }
+
+    logger.info(
+      "Generate Artwork for project: " +
+        this.projectId +
+        " collection: " +
+        collection.name +
+        "(" +
+        this.collectionId +
+        ", type: " +
+        collection.type +
+        ")"
+    );
 
     imageLayers.forEach((imageLayer) => {
       if (imageLayer.traitValueId) {
@@ -171,14 +176,16 @@ export class ArtworkGenerator {
     logger.info("Matching Trait Values: " + Object.values(traitValues).length);
     logger.info("Matching Image Layers: " + imageLayers.length);
 
-    if (traits.length == 0) {
-      logger.info("no matching traits");
-      return [];
-    }
+    if (collection.type != CollectionType.Prerendered) {
+      if (traits.length == 0) {
+        logger.info("no matching traits");
+        return [];
+      }
 
-    if (Object.values(traitValues).length == 0) {
-      logger.info("no matching trait values");
-      return [];
+      if (Object.values(traitValues).length == 0) {
+        logger.info("no matching trait values");
+        return [];
+      }
     }
 
     if (imageLayers.length == 0) {
@@ -190,20 +197,29 @@ export class ArtworkGenerator {
 
     let i = this.startIndex;
     while (i < this.endIndex) {
-      let compositeData: ImageComposite | null;
+      let compositeData: ImageComposite | null = null;
+
       switch (collection.type) {
         case CollectionType.Generative:
-      compositeData = await this.layeredArtworkForItem(
-        i,
-        collection,
-        traitSet,
-        traits,
-        traitValues,
-        traitValueIdToImageLayers,
-        imageLayers,
-        conflicts,
-        projectDownloadPath
-      );
+          compositeData = await this.layeredArtworkForItem(
+            i,
+            collection,
+            traitSet,
+            traits,
+            traitValues,
+            traitValueIdToImageLayers,
+            imageLayers,
+            conflicts,
+            projectDownloadPath
+          );
+          break;
+        case CollectionType.Prerendered:
+          compositeData = await this.prerenderedArtworkForItem(
+            i,
+            collection,
+            imageLayers,
+            projectDownloadPath
+          );
           break;
       }
 
@@ -390,6 +406,69 @@ export class ArtworkGenerator {
         externalURL: downloadURL,
         traits: sortedTraitValueImagePairs,
         traitsHash: hash,
+      } as ImageComposite;
+
+      return imageComposite;
+    } else {
+      return null;
+    }
+  }
+
+  async prerenderedArtworkForItem(
+    itemIndex: number,
+    collection: Collection,
+    imageLayers: ImageLayer[],
+    projectDownloadPath: string
+  ): Promise<ImageComposite | null> {
+    const imageLayer = imageLayers[itemIndex];
+    const inputFilePath = imageLayer
+      ? this.downloadPathForImageLayer(imageLayer)
+      : null;
+
+    const outputFilePath: string = path.join(
+      projectDownloadPath,
+      itemIndex + ".png"
+    );
+
+    let succeeded = await this.compositeLayeredImages(
+      [inputFilePath],
+      outputFilePath
+    );
+
+    if (succeeded) {
+      // upload the composite back to the bucket
+      const bucket = storage.bucket();
+      const uploadFilePath =
+        this.projectId +
+        "/" +
+        collection.id +
+        "/generated/" +
+        this.compositeGroupId +
+        "/" +
+        itemIndex +
+        ".png";
+
+      const uploadFile = bucket.file(uploadFilePath);
+
+      const downloadURL = await bucket
+        .upload(outputFilePath, {
+          destination: uploadFilePath,
+          // metadata: {
+          //   contentType: "image/png",
+          // },
+        })
+        .then(() => {
+          return uploadFile.publicUrl();
+        })
+        .catch((err: Error) => {
+          logger.error("error uploading file to bucket");
+          logger.error(err);
+        });
+
+      const imageComposite = {
+        externalURL: downloadURL,
+        traits: [] as TraitValuePair[],
+        traitsHash: itemIndex.toString(),
       } as ImageComposite;
 
       return imageComposite;

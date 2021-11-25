@@ -9,7 +9,10 @@ import {
 } from "@heroicons/react/outline";
 import DropsSubnav from "../../../../../../components/DropsSubnav";
 import Project, { Projects } from "../../../../../../models/project";
-import Collection, { Collections } from "../../../../../../models/collection";
+import Collection, {
+  Collections,
+  CollectionType,
+} from "../../../../../../models/collection";
 import ImageLayer, { ImageLayers } from "../../../../../../models/imageLayer";
 import Trait, { Traits } from "../../../../../../models/trait";
 import TraitSet, { TraitSets } from "../../../../../../models/traitSet";
@@ -518,97 +521,103 @@ export default function IndexPage(props: Props) {
                   <p className="block text-sm font-medium text-gray-500 pointer-events-none">
                     {ImageLayers.formatBytes(imageLayer.bytes)}
                   </p>
-                  <br />
-                  <div>
-                    <label
-                      htmlFor="traitSet"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Associated Trait Set
-                    </label>
-                    <select
-                      id={imageLayer.id + "-traitSet"}
-                      className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      defaultValue={imageLayer.traitSetId ?? "-1"}
-                      onChange={(e) => {
-                        const { value } = e.currentTarget;
-                        const traitSetId = value.toString();
-                        if (traitSetId) {
-                          onChangeTraitSetId(traitSetId, imageLayer.id);
-                        }
-                      }}
-                    >
-                      <option value="-1">
-                        {traitSets.length == 0 ? "Default" : "Unassigned"}
-                      </option>
-                      {traitSets.map((traitSet) => (
-                        <option key={traitSet.id} value={traitSet.id}>
-                          {traitSet.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="trait"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Associated Trait
-                    </label>
-                    <select
-                      id={imageLayer.id + "-trait"}
-                      className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      defaultValue={imageLayer.traitId ?? "-1"}
-                      onChange={(e) => {
-                        const { value } = e.currentTarget;
-                        const traitId = value.toString();
-                        if (traitId) {
-                          onChangeTraitId(traitId, imageLayer.id);
-                        }
-                      }}
-                    >
-                      <option value="-1">Unassigned</option>
-                      {traitsDict[imageLayer.traitSetId ?? "-1"]?.map(
-                        (trait) => (
-                          <option key={trait.id} value={trait.id}>
-                            {trait.name}
+                  {collection.type == CollectionType.Prerendered ? (
+                    ""
+                  ) : (
+                    <>
+                      <br />
+                      <div>
+                        <label
+                          htmlFor="traitSet"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Associated Trait Set
+                        </label>
+                        <select
+                          id={imageLayer.id + "-traitSet"}
+                          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          defaultValue={imageLayer.traitSetId ?? "-1"}
+                          onChange={(e) => {
+                            const { value } = e.currentTarget;
+                            const traitSetId = value.toString();
+                            if (traitSetId) {
+                              onChangeTraitSetId(traitSetId, imageLayer.id);
+                            }
+                          }}
+                        >
+                          <option value="-1">
+                            {traitSets.length == 0 ? "Default" : "Unassigned"}
                           </option>
-                        )
-                      )}
-                    </select>
-                  </div>
+                          {traitSets.map((traitSet) => (
+                            <option key={traitSet.id} value={traitSet.id}>
+                              {traitSet.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  <div>
-                    <label
-                      htmlFor="traitValue"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Associated Trait Value
-                    </label>
-                    <select
-                      id={imageLayer.id + "-traitValue"}
-                      className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      defaultValue={imageLayer.traitValueId ?? ""}
-                      onChange={(e) => {
-                        const { value } = e.currentTarget;
-                        const traitValueId = value.toString();
-                        if (traitValueId) {
-                          onChangeTraitValueId(traitValueId, imageLayer.id);
-                        }
-                      }}
-                    >
-                      <option key={"-1"} value="-1"></option>
-                      {(imageLayer.traitId
-                        ? traitValuesDict[imageLayer.traitId] ?? []
-                        : []
-                      ).map((traitValue) => (
-                        <option key={traitValue.id} value={traitValue.id}>
-                          {traitValue.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      <div>
+                        <label
+                          htmlFor="trait"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Associated Trait
+                        </label>
+                        <select
+                          id={imageLayer.id + "-trait"}
+                          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          defaultValue={imageLayer.traitId ?? "-1"}
+                          onChange={(e) => {
+                            const { value } = e.currentTarget;
+                            const traitId = value.toString();
+                            if (traitId) {
+                              onChangeTraitId(traitId, imageLayer.id);
+                            }
+                          }}
+                        >
+                          <option value="-1">Unassigned</option>
+                          {traitsDict[imageLayer.traitSetId ?? "-1"]?.map(
+                            (trait) => (
+                              <option key={trait.id} value={trait.id}>
+                                {trait.name}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="traitValue"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Associated Trait Value
+                        </label>
+                        <select
+                          id={imageLayer.id + "-traitValue"}
+                          className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          defaultValue={imageLayer.traitValueId ?? ""}
+                          onChange={(e) => {
+                            const { value } = e.currentTarget;
+                            const traitValueId = value.toString();
+                            if (traitValueId) {
+                              onChangeTraitValueId(traitValueId, imageLayer.id);
+                            }
+                          }}
+                        >
+                          <option key={"-1"} value="-1"></option>
+                          {(imageLayer.traitId
+                            ? traitValuesDict[imageLayer.traitId] ?? []
+                            : []
+                          ).map((traitValue) => (
+                            <option key={traitValue.id} value={traitValue.id}>
+                              {traitValue.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
