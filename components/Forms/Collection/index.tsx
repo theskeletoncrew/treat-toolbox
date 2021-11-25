@@ -39,7 +39,12 @@ const schema = yup
       .positive("Must be a positive whole number")
       .integer("Must be a positive whole number")
       .required("This field is required"),
-    symbol: yup.string().trim().uppercase().required("This field is required"),
+    symbol: yup
+      .string()
+      .trim()
+      .uppercase()
+      .max(10, "Symbol must be 10 characters or less")
+      .required("This field is required"),
     userGroupId: yup.string().trim().required("This field is required"),
     nftName: yup.string().trim().required("This field is required"),
   })
