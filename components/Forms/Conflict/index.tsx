@@ -81,8 +81,6 @@ export const ConflictForm: React.FC<Props> = ({
         return false;
       }
 
-      console.log(data);
-
       await Conflicts.update(data, conflict.id, projectId, collectionId);
     } else {
       await Conflicts.create(data, projectId, collectionId);

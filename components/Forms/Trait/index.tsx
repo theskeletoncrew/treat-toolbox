@@ -50,8 +50,6 @@ export const TraitForm: React.FC<Props> = ({
         return false;
       }
 
-      console.log(data);
-
       await Traits.update(data, trait.id, projectId, collectionId);
     } else {
       await Traits.create(data, projectId, collectionId);
