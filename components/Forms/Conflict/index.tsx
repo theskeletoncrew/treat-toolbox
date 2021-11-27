@@ -188,11 +188,13 @@ export const ConflictForm: React.FC<Props> = ({
                 }}
               >
                 <option value="-1">Unassigned</option>
-                {(traitSetId ? traitsDict[traitSetId] : traits).map((trait) => (
-                  <option key={trait.id} value={trait.id}>
-                    {trait.name}
-                  </option>
-                ))}
+                {(traitSetId ? traitsDict[traitSetId] ?? [] : traits).map(
+                  (trait) => (
+                    <option key={trait.id} value={trait.id}>
+                      {trait.name}
+                    </option>
+                  )
+                )}
               </select>
 
               {errors.trait1Id && (
@@ -218,7 +220,7 @@ export const ConflictForm: React.FC<Props> = ({
                 <option key={"-1"} value="-1">
                   Any
                 </option>
-                {(trait1Id ? traitValuesDict[trait1Id] : []).map(
+                {(trait1Id ? traitValuesDict[trait1Id] ?? [] : []).map(
                   (traitValue) => (
                     <option key={traitValue.id} value={traitValue.id}>
                       {traitValue.name}
@@ -260,11 +262,13 @@ export const ConflictForm: React.FC<Props> = ({
                 }}
               >
                 <option value="-1">Unassigned</option>
-                {(traitSetId ? traitsDict[traitSetId] : traits).map((trait) => (
-                  <option key={trait.id} value={trait.id}>
-                    {trait.name}
-                  </option>
-                ))}
+                {(traitSetId ? traitsDict[traitSetId] ?? [] : traits).map(
+                  (trait) => (
+                    <option key={trait.id} value={trait.id}>
+                      {trait.name}
+                    </option>
+                  )
+                )}
               </select>
 
               {errors.trait2Id && (
@@ -290,7 +294,7 @@ export const ConflictForm: React.FC<Props> = ({
                 <option key={"-1"} value="-1">
                   Any
                 </option>
-                {(trait2Id ? traitValuesDict[trait2Id] : []).map(
+                {(trait2Id ? traitValuesDict[trait2Id] ?? [] : []).map(
                   (traitValue) => (
                     <option key={traitValue.id} value={traitValue.id}>
                       {traitValue.name}
