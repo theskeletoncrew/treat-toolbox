@@ -405,19 +405,23 @@ export default function IndexPage(props: Props) {
                   </button>
                 </Link>
               </span>
-              <span>
-                <button
-                  type="button"
-                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  onClick={(e) => syncTraitsToFilenames()}
-                >
-                  <RefreshIcon
-                    className="-ml-1 mr-1 h-5 w-5"
-                    aria-hidden="true"
-                  />
-                  Sync Traits to Filenames
-                </button>
-              </span>
+              {collection.type == CollectionType.Prerendered ? (
+                ""
+              ) : (
+                <span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onClick={(e) => syncTraitsToFilenames()}
+                  >
+                    <RefreshIcon
+                      className="-ml-1 mr-1 h-5 w-5"
+                      aria-hidden="true"
+                    />
+                    Sync Traits to Filenames
+                  </button>
+                </span>
+              )}
             </div>
 
             <div className="float-left mt-4 ml-8">
@@ -452,17 +456,21 @@ export default function IndexPage(props: Props) {
                 Search
               </button>
 
-              <button
-                type="button"
-                className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                onClick={function (e) {
-                  setShowOnlyUnassigned(!showOnlyUnassigned);
-                }}
-              >
-                {showOnlyUnassigned
-                  ? "Show Assigned and Unassigned"
-                  : "Show Only Unassigned"}
-              </button>
+              {collection.type == CollectionType.Prerendered ? (
+                ""
+              ) : (
+                <button
+                  type="button"
+                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={function (e) {
+                    setShowOnlyUnassigned(!showOnlyUnassigned);
+                  }}
+                >
+                  {showOnlyUnassigned
+                    ? "Show Assigned and Unassigned"
+                    : "Show Only Unassigned"}
+                </button>
+              )}
             </div>
 
             <ul
