@@ -94,6 +94,9 @@ export default function IndexPage(props: Props) {
     router.reload();
   };
 
+  const totalRarity = traitValues.map((a) => a.rarity).reduce((a, b) => a + b);
+  const noneRarity = 1 - totalRarity;
+
   if (!trait) {
     return (
       <Layout
@@ -265,11 +268,7 @@ export default function IndexPage(props: Props) {
                 trait.name
               ) : (
                 <h1>
-                  {trait.name}, Total Rarity:{" "}
-                  {traitValues
-                    .map((a) => a.rarity)
-                    .reduce((a, b) => a + b)
-                    .toFixed(5)}
+                  {trait.name}, Total Rarity: {totalRarity.toFixed(5)}
                 </h1>
               )}
             </div>
@@ -304,6 +303,23 @@ export default function IndexPage(props: Props) {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
+                        {noneRarity > 0 ? (
+                          <tr className="opacity-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm italic text-gray-900">
+                                {"None"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm italic text-gray-500 max-w-sm truncate overflow-ellipsis max-h-14">
+                                {noneRarity}
+                              </div>
+                            </td>
+                            <td></td>
+                          </tr>
+                        ) : (
+                          ""
+                        )}
                         {traitValues?.map((traitValue) => {
                           return (
                             <Link
