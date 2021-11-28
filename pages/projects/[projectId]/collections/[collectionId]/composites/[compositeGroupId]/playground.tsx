@@ -23,7 +23,6 @@ import { TraitValuePair } from "../../../../../../../models/imageComposite";
 import Image from "next/image";
 
 interface Props {
-  project: Project;
   projects: Project[];
   collection: Collection;
   compositeGroup: ImageCompositeGroup;
@@ -33,8 +32,17 @@ interface Props {
   imageLayers: ImageLayer[];
 }
 
+interface PlaygroundLayer {
+  imageLayer: ImageLayer;
+  zIndex: number;
+}
+
+interface PlaygroundPair {
+  trait: Trait;
+  traitValue: TraitValue | null;
+}
+
 export default function CreatePage(props: Props) {
-  const project = props.project;
   const projects = props.projects;
   const collection = props.collection;
   const compositeGroup = props.compositeGroup;
@@ -43,125 +51,116 @@ export default function CreatePage(props: Props) {
   const traitValuesDict = props.traitValuesDict;
   const imageLayers = props.imageLayers;
 
-  const startingTraitValuePairs = traits.map((trait) => {
+  const startingPlaygroundPairs = traits.map((trait) => {
     return {
       trait: trait,
       traitValue: null,
-      imageLayer: null,
-    } as TraitValuePair;
+    } as PlaygroundPair;
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [traitId, setTraitId] = useState<string | null>(null);
-  const [traitValueId, setTraitValueId] = useState<string | null>(null);
-  const [traitValuePairs, setTraitValuePairs] = useState<TraitValuePair[]>(
-    startingTraitValuePairs
+  const [playgroundPairs, setPlaygroundPairs] = useState<PlaygroundPair[]>(
+    startingPlaygroundPairs
   );
-
-  const router = useRouter();
+  const [playgroundImageLayers, setPlaygroundImageLayers] = useState<
+    PlaygroundLayer[]
+  >([]);
 
   const onChangeTraitId = async (traitId: string) => {
     setTraitId(traitId);
   };
 
-  const onChangeTraitValueId = async (traitValueId: string) => {
-    setTraitValueId(traitValueId);
-  };
-
-  const onSave = async (event: FormEvent) => {
-    setIsSubmitting(true);
-    // const newTraits = [traitValuePair];
-
-    // const newImageComposite = {
-    //   externalURL: "",
-    //   traits: newTraits,
-    // } as ImageComposite;
-
-    // const imageComposites = [
-    //   ...compositeGroup.imageComposites,
-    //   newImageComposite,
-    // ];
-
-    // await ImageCompositeGroups.update(
-    //   {
-    //     imageComposites: imageComposites,
-    //   },
-    //   compositeGroup.id,
-    //   projectId,
-    //   collection.id
-    // );
-
-    setIsSubmitting(false);
-
-    router.push(
-      {
-        pathname:
-          "/projects/" +
-          projectId +
-          "/collections/" +
-          collection.id +
-          "/composites/" +
-          compositeGroup.id,
-        query: {},
-      },
-      undefined,
-      { shallow: false }
-    );
-  };
-
   const onSetTrait = async (event: FormEvent) => {
     event.preventDefault();
-
-    setIsSubmitting(true);
 
     const data = new FormData(event.target as HTMLFormElement);
 
     const traitId = data.get("traitId")?.toString().trim();
     const traitValueId = data.get("traitValueId")?.toString().trim();
 
-    if (traitId && traitValueId) {
-      const trait = traits.find((trait) => {
-        return trait.id == traitId;
+    if (!traitId || !traitValueId) {
+      return;
+    }
+
+    const trait = traits.find((trait) => {
+      return trait.id == traitId;
+    });
+
+    if (trait) {
+      const traitValue = traitValuesDict[trait.id].find((value) => {
+        return value.id == traitValueId;
       });
 
-      if (trait) {
-        const traitValue = traitValuesDict[trait.id].find((value) => {
-          return value.id == traitValueId;
-        });
+      const newTraitValuePair = {
+        trait: trait,
+        traitValue: traitValue,
+      } as PlaygroundPair;
+
+      const existingPairIndex = playgroundPairs.findIndex((pair) => {
+        return pair.trait.id == traitId;
+      });
+
+      if (existingPairIndex != -1) {
+        playgroundPairs[existingPairIndex] = newTraitValuePair;
+        setPlaygroundPairs(playgroundPairs);
+      } else {
+        setPlaygroundPairs([...playgroundPairs, newTraitValuePair]);
+      }
+
+      console.log(playgroundPairs);
+
+      let playgroundLayers: PlaygroundLayer[] = [];
+
+      for (let i = 0; i < playgroundPairs.length; i++) {
+        const pair = playgroundPairs[i];
 
         const imageLayer = imageLayers.find((layer) => {
-          return layer.traitId == traitId && layer.traitValueId == traitValueId;
+          return (
+            layer.traitId == pair.trait.id &&
+            layer.traitValueId == pair.traitValue?.id
+          );
         });
 
-        const newTraitValuePair = {
-          trait: trait,
-          traitValue: traitValue,
-          imageLayer: imageLayer,
-        } as TraitValuePair;
-
-        const existingPairIndex = traitValuePairs.findIndex((pair) => {
-          return pair.trait.id == traitId;
-        });
-
-        if (existingPairIndex != -1) {
-          traitValuePairs[existingPairIndex] = newTraitValuePair;
-          setTraitValuePairs(traitValuePairs);
-        } else {
-          setTraitValuePairs([...traitValuePairs, newTraitValuePair]);
+        if (!imageLayer) {
+          continue;
         }
+
+        const playgroundLayer = {
+          imageLayer: imageLayer,
+          zIndex: pair.trait.zIndex,
+        } as PlaygroundLayer;
+
+        playgroundLayers.push(playgroundLayer);
+
+        const companionLayerId = imageLayer.companionLayerId;
+        const companionLayerZIndex = imageLayer.companionLayerZIndex;
+        if (!companionLayerId || !companionLayerZIndex) {
+          continue;
+        }
+
+        const companionLayer = imageLayers.find((layer) => {
+          return layer.id == imageLayer?.companionLayerId;
+        });
+
+        const companionPlaygroundLayer = {
+          imageLayer: companionLayer,
+          zIndex: companionLayerZIndex,
+        } as PlaygroundLayer;
+        playgroundLayers.push(companionPlaygroundLayer);
       }
+
+      setPlaygroundImageLayers([]);
+      setPlaygroundImageLayers(playgroundLayers);
+
+      console.log(playgroundLayers);
     }
 
     setTraitId(null);
-    setTraitValueId(null);
 
     const traitIdElem = document.getElementById("traitId") as HTMLInputElement;
     if (traitIdElem) {
       traitIdElem.value = "-1";
     }
-
-    setIsSubmitting(false);
   };
 
   return (
@@ -206,23 +205,23 @@ export default function CreatePage(props: Props) {
                   id="imageContainer"
                   className="relative px-6 w-96 h-96 mt-4 border border-gray-300"
                 >
-                  {traitValuePairs
+                  {playgroundImageLayers
                     .sort((pairA, pairB) => {
-                      return pairA.trait.zIndex < pairB.trait.zIndex
+                      return pairA.zIndex < pairB.zIndex
                         ? -1
-                        : pairA.trait.zIndex == pairB.trait.zIndex
+                        : pairA.zIndex == pairB.zIndex
                         ? 0
                         : 1;
                     })
                     .map((pair) => (
                       <div
-                        key={pair.trait.id}
+                        key={pair.imageLayer.id}
                         className="absolute top-0 left-0"
                       >
                         {pair.imageLayer?.url ? (
                           <Image
                             src={pair.imageLayer?.url ?? ""}
-                            alt={"Layer" + pair.trait.zIndex}
+                            alt={"Layer" + pair.zIndex}
                             width="384"
                             height="384"
                             unoptimized
@@ -235,7 +234,7 @@ export default function CreatePage(props: Props) {
                     ))}
                 </div>
                 <ul>
-                  {traitValuePairs
+                  {playgroundPairs
                     .sort((pairA, pairB) => {
                       return pairA.trait.zIndex < pairB.trait.zIndex
                         ? -1
@@ -302,13 +301,6 @@ export default function CreatePage(props: Props) {
                         name="traitValueId"
                         className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         defaultValue=""
-                        onChange={(e) => {
-                          const { value } = e.currentTarget;
-                          const traitValueId = value.toString();
-                          if (traitValueId) {
-                            onChangeTraitValueId(traitValueId);
-                          }
-                        }}
                       >
                         <option key={"-1"} value="-1"></option>
                         {(traitId ? traitValuesDict[traitId] : []).map(
@@ -349,7 +341,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (projectId && collectionId && compositeGroupId) {
       const projects = await Projects.all();
       const collection = await Collections.withId(collectionId, projectId);
-      const project = projects.find((project) => project.id == projectId);
       const compositeGroup = await ImageCompositeGroups.withId(
         compositeGroupId,
         projectId,
@@ -370,7 +361,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
       return {
         props: {
-          project: project,
           projects: projects,
           collection: collection,
           compositeGroup: compositeGroup,
