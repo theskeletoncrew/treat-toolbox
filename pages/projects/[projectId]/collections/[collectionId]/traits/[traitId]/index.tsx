@@ -94,7 +94,10 @@ export default function IndexPage(props: Props) {
     router.reload();
   };
 
-  const totalRarity = traitValues.map((a) => a.rarity).reduce((a, b) => a + b);
+  const totalRarity =
+    traitValues.count > 0
+      ? traitValues.map((a) => a.rarity).reduce((a, b) => a + b)
+      : 0;
   const noneRarity = 1 - totalRarity;
 
   if (!trait) {
