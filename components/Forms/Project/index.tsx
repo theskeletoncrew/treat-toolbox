@@ -14,7 +14,6 @@ const schema = yup
   .object({
     name: yup.string().trim().required("This field is required"),
     description: yup.string().trim().required("This field is required"),
-    domain: yup.string().trim().required("This field is required"),
   })
   .required();
 
@@ -99,34 +98,6 @@ export const ProjectForm: React.FC<Props> = ({
               </span>
             )}
           </div>
-        </div>
-
-        <div>
-          <div>
-            <label
-              htmlFor="domain"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Domain
-            </label>
-            <span className="mt-1 inline-flex flex-1 rounded-md shadow-sm">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 bg-gray-50 text-gray-500 text-sm">
-                https://
-              </span>
-              <input
-                type="text"
-                {...register("domain")}
-                id="domain"
-                className="inline-flex flex-1 rounded-none sm:text-sm"
-                placeholder="skeletoncrew.rip"
-              />
-            </span>
-          </div>
-          {errors.domain && (
-            <span className=" text-red-800 text-xs">
-              {errors.domain.message}
-            </span>
-          )}
         </div>
       </div>
     </TTForm>

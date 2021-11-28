@@ -20,6 +20,7 @@ export default interface Collection {
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;
+  url: string;
   userGroupId: string;
   nftName: string;
 }

@@ -45,6 +45,17 @@ const schema = yup
       .uppercase()
       .max(10, "Symbol must be 10 characters or less")
       .required("This field is required"),
+    url: yup
+      .string()
+      .trim()
+      .test("template-url", "Must be a valid url", (value, _) => {
+        const testURL = value?.replace(/{{([\w ]*)}}/g, "-") ?? "";
+        console.log(testURL);
+        return yup
+          .object({ url: yup.string().url().required() })
+          .isValidSync({ url: testURL });
+      })
+      .required("Must be a valid url"),
     userGroupId: yup.string().trim().required("This field is required"),
     nftName: yup.string().trim().required("This field is required"),
   })
@@ -130,8 +141,7 @@ export const CollectionForm: React.FC<Props> = ({
             </span>
           )}
           <p className="mt-2 text-xs text-gray-500">
-            This is the name that will be shown on the NFT. If left blank the
-            name will be the item number, ex: #542.
+            This is the name that will be shown on the NFT.
             <br />
             You can substitute NFT metadata values by using the format:
             &#123;&#123;METADATA_TITLE&#125;&#125; or
@@ -227,6 +237,34 @@ export const CollectionForm: React.FC<Props> = ({
             <span className=" text-red-800 text-xs">
               {errors.symbol.message}
             </span>
+          )}
+        </div>
+
+        <div>
+          <div>
+            <label
+              htmlFor="url"
+              className="block text-sm font-medium text-gray-700"
+            >
+              External NFT URL
+            </label>
+            <input
+              type="text"
+              {...register("url")}
+              id="url"
+              className="mt-1 block w-full shadow-sm sm:text-sm rounded-md"
+              placeholder="https://skeletoncrew.rip/skulls/{{NUMBER}}"
+            />
+            <p className="mt-2 text-xs text-gray-500">
+              This is the external url used for each NFT
+              <br />
+              You can substitute NFT metadata values by using the format:
+              &#123;&#123;METADATA_TITLE&#125;&#125; or
+              &#123;&#123;NUMBER&#125;&#125; for item number
+            </p>
+          </div>
+          {errors.url && (
+            <span className=" text-red-800 text-xs">{errors.url.message}</span>
           )}
         </div>
 

@@ -10,6 +10,7 @@ export interface Collection {
   supply: number;
   sellerFeeBasisPoints: number;
   symbol: string;
+  url: string;
   userGroupId: string;
 }
 

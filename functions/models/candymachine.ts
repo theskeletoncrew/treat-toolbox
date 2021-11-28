@@ -134,12 +134,27 @@ export namespace CandyMachine {
       }
     );
 
+    // swap {{METADATA_TITLE}} with METADATA_VALUE
+    const externalUrl = collection.url?.replace(
+      /{{([\w ]*)}}/g,
+      function (_, key) {
+        return key.toUpperCase() == "NUMBER"
+          ? humanReadableOrderNumber.toString()
+          : attributes
+              .find((attribute) => {
+                return attribute.trait_type.toUpperCase() == key.toUpperCase();
+              })
+              ?.value.toLowerCase()
+              .replace(/\s/g, "-") ?? "";
+      }
+    );
+
     return {
       name: name ?? " #" + humanReadableOrderNumber,
       symbol: collection.symbol,
       description: project.description,
       seller_fee_basis_points: collection.sellerFeeBasisPoints,
-      external_url: project.url,
+      external_url: externalUrl,
       image: orderNumber + ".png",
       attributes: attributes,
       collection: {
