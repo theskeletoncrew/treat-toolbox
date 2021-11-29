@@ -95,7 +95,7 @@ export default function IndexPage(props: Props) {
   };
 
   const totalRarity =
-    traitValues.count > 0
+    traitValues.length > 0
       ? traitValues.map((a) => a.rarity).reduce((a, b) => a + b)
       : 0;
   const noneRarity = 1 - totalRarity;
