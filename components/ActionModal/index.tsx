@@ -8,7 +8,7 @@ interface Props {
   message: string;
   actionButtonTitle: string;
   cancelButtonTitle?: string;
-  actionURL: string;
+  actionURLs: string[];
   cancelAction: () => void;
   show?: boolean;
 }
@@ -18,7 +18,7 @@ export const ActionModal: React.FC<Props> = ({
   message,
   actionButtonTitle,
   cancelButtonTitle = "Cancel",
-  actionURL,
+  actionURLs,
   cancelAction,
   show,
 }) => {
@@ -76,21 +76,36 @@ export const ActionModal: React.FC<Props> = ({
                   >
                     {title}
                   </Dialog.Title>
-                  <div className="mt-2">
+                  <div className="mt-2 mb-2">
                     <p className="text-sm text-gray-500">{message}</p>
                   </div>
+                  {actionURLs.length > 1
+                    ? actionURLs.map((url, i) => (
+                        <div key={i}>
+                          <Link href={url} passHref={true}>
+                            <a className="block pl-2 pt-1 pb-1 truncate text-xs max-w-md font-mono bg-purple-50 border-l-2 border-purple-600 mb-1 hover:bg-purple-200">
+                              Download Batch {i}
+                            </a>
+                          </Link>
+                        </div>
+                      ))
+                    : ""}
                 </div>
               </div>
               <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                <Link href={actionURL} passHref={true}>
-                  <button
-                    type="button"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm"
-                    onClick={() => cancelAction()}
-                  >
-                    {actionButtonTitle}
-                  </button>
-                </Link>
+                {actionURLs.length == 1 ? (
+                  <Link href={actionURLs[0]} passHref={true}>
+                    <button
+                      type="button"
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm"
+                      onClick={() => cancelAction()}
+                    >
+                      {actionButtonTitle}
+                    </button>
+                  </Link>
+                ) : (
+                  ""
+                )}
                 <button
                   type="button"
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"

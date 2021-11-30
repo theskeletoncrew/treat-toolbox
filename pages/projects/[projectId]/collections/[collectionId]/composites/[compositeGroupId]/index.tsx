@@ -14,6 +14,7 @@ import { API } from "../../../../../../../models/api";
 import { ProgressModal } from "../../../../../../../components/ProgressModal";
 import { ActionModal } from "../../../../../../../components/ActionModal";
 import { useState } from "react";
+import { ImageCompositeGroups } from "../../../../../../../models/imageCompositeGroup";
 
 interface Props {
   project: Project;
@@ -25,6 +26,8 @@ interface Props {
   userGroupId: string;
 }
 
+const BATCH_SIZE = 500;
+
 export default function IndexPage(props: Props) {
   const project = props.project;
   const projects = props.projects;
@@ -35,14 +38,10 @@ export default function IndexPage(props: Props) {
   const userGroupId = props.userGroupId;
 
   const [exportingModalOpen, setExportingModalOpen] = useState(false);
-  const exportingTotal = composites.length;
+  const [exportedItems, setExportedItems] = useState(0);
 
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
-  const [downloadURL, setDownloadURL] = useState("");
-
-  function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
-    return value !== null && value !== undefined;
-  }
+  const [downloadURLs, setDownloadURLs] = useState<string[]>([]);
 
   function cancelExporting() {
     // TODO: truly cancel the exporting task
@@ -51,45 +50,69 @@ export default function IndexPage(props: Props) {
   }
 
   async function packageForMint() {
-    let jsonExports: Promise<void>[] = [];
+    let indexes = Array.from(composites.keys());
+
+    // shuffle the order of the array
+    const shuffledIndexes = indexes
+      .map((value) => ({ value, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ value }) => value);
+
+    await ImageCompositeGroups.update(
+      {
+        indexes: shuffledIndexes,
+      },
+      compositeGroupId,
+      projectId,
+      collection.id
+    );
 
     setExportingModalOpen(true);
 
-    fetch(
-      API.ENDPOINT +
-        "/download-archive?projectId=" +
-        projectId +
-        "&collectionId=" +
-        collection.id +
-        "&compositeGroupId=" +
-        compositeGroupId +
-        "&userGroupId=" +
-        userGroupId,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+    const urls: string[] = [];
+
+    for (let i = 0; i < composites.length / BATCH_SIZE && i < 2; i++) {
+      setExportedItems(i * BATCH_SIZE);
+
+      const response = await fetch(
+        API.ENDPOINT +
+          "/download-archive?projectId=" +
+          projectId +
+          "&collectionId=" +
+          collection.id +
+          "&compositeGroupId=" +
+          compositeGroupId +
+          "&userGroupId=" +
+          userGroupId +
+          "&batchSize=" +
+          BATCH_SIZE +
+          "&batchNumber=" +
+          (i + 1),
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
-        return response.json();
-      })
-      .then((json) => {
+      );
+
+      if (!response.ok) {
+        console.error("Error: ", response.statusText);
+        setExportingModalOpen(false);
+        alert("Export Request Failed");
+      } else {
+        const json = await response.json();
         console.log(json);
-        setExportingModalOpen(false);
-        setDownloadURL(json.url);
-        setDownloadModalOpen(true);
-      })
-      .catch((error: Error) => {
-        console.error("Error:", error);
-        setExportingModalOpen(false);
-        alert(error.message);
-      });
+        urls.push(json.url);
+      }
+    }
+
+    console.log(urls);
+
+    setExportingModalOpen(false);
+    setDownloadURLs(urls);
+    setDownloadModalOpen(true);
   }
 
   if (!projects) {
@@ -223,23 +246,27 @@ export default function IndexPage(props: Props) {
             <ProgressModal
               title="Exporting for Candy Machine"
               message={
-                "Exporting " +
-                exportingTotal +
-                " items. This may take a while..."
+                "Exporting items " +
+                exportedItems +
+                "-" +
+                (exportedItems + BATCH_SIZE) +
+                " of " +
+                composites.length
               }
-              loadingPercent={0}
+              loadingPercent={Math.ceil(
+                (100 * exportedItems) / composites.length
+              )}
               cancelAction={() => {
                 cancelExporting();
               }}
               show={exportingModalOpen}
-              indeterminate={true}
             />
 
             <ActionModal
               title="Export Complete"
               message="Your Candy Machine files are ready to be downloaded!"
               actionButtonTitle="Download"
-              actionURL={downloadURL}
+              actionURLs={downloadURLs}
               cancelAction={() => {
                 setDownloadModalOpen(false);
               }}

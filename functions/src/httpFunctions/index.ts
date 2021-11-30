@@ -52,8 +52,17 @@ api.get("/download-archive", (req, res) => {
   const collectionId = req.query.collectionId?.toString();
   const compositeGroupId = req.query.compositeGroupId?.toString();
   const userGroupId = req.query.userGroupId?.toString();
+  const batchSize = parseInt(req.query.batchSize?.toString() ?? "500");
+  const batchNumber = parseInt(req.query.batchNumber?.toString() ?? "1");
 
-  if (!projectId || !collectionId || !compositeGroupId || !userGroupId) {
+  if (
+    !projectId ||
+    !collectionId ||
+    !compositeGroupId ||
+    !userGroupId ||
+    !batchSize ||
+    !batchNumber
+  ) {
     res.status(400).send();
     return;
   }
@@ -62,7 +71,9 @@ api.get("/download-archive", (req, res) => {
     projectId,
     collectionId,
     compositeGroupId,
-    userGroupId
+    userGroupId,
+    batchSize,
+    batchNumber
   );
   downloader
     .download()

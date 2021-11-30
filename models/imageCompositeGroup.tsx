@@ -6,6 +6,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  updateDoc,
   deleteDoc,
 } from "firebase/firestore";
 import { Projects } from "./project";
@@ -14,6 +15,7 @@ import { Collections } from "./collection";
 export default interface ImageCompositeGroup {
   id: string;
   timestamp: number;
+  indexes: number[];
 }
 
 export namespace ImageCompositeGroups {
@@ -102,6 +104,29 @@ export namespace ImageCompositeGroups {
     return {
       ...imageCompositeGroup,
     } as ImageCompositeGroup;
+  }
+
+  export async function update(
+    updates: { [x: string]: any },
+    id: string,
+    projectId: string,
+    collectionId: string
+  ): Promise<void> {
+    const docRef = doc(
+      db,
+      Projects.FB_COLLECTION_NAME +
+        "/" +
+        projectId +
+        "/" +
+        Collections.FB_COLLECTION_NAME +
+        "/" +
+        collectionId +
+        "/" +
+        FB_COLLECTION_NAME +
+        "/" +
+        id
+    );
+    return await updateDoc(docRef, updates);
   }
 
   export async function remove(

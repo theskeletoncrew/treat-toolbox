@@ -1,9 +1,9 @@
 import { logger } from "firebase-functions";
-import { v4 as uuidv4 } from "uuid";
 import {
   Collections,
   ImageComposite,
   ImageComposites,
+  ImageCompositeGroups,
   Projects,
   Users,
 } from "../models/models";
@@ -15,6 +15,8 @@ export class CandyMachineDownloader {
   collectionId: string;
   compositeGroupId: string;
   userGroupId: string;
+  batchSize: number;
+  batchNumber: number;
 
   archiver = require("archiver");
 
@@ -22,12 +24,16 @@ export class CandyMachineDownloader {
     projectId: string,
     collectionId: string,
     compositeGroupId: string,
-    userGroupId: string
+    userGroupId: string,
+    batchSize: number,
+    batchNumber: number
   ) {
     this.projectId = projectId;
     this.collectionId = collectionId;
     this.compositeGroupId = compositeGroupId;
     this.userGroupId = userGroupId;
+    this.batchSize = batchSize;
+    this.batchNumber = batchNumber;
   }
 
   async download(): Promise<string> {
@@ -35,8 +41,9 @@ export class CandyMachineDownloader {
     const bucket = storage.bucket();
 
     // generate random name for a file
-    const filePath = uuidv4();
-    const file = bucket.file("/candy-machine-" + filePath);
+    const file = bucket.file(
+      "/candy-machine-" + this.compositeGroupId + "-" + this.batchNumber
+    );
 
     const outputStreamBuffer = file.createWriteStream({
       gzip: true,
@@ -61,26 +68,30 @@ export class CandyMachineDownloader {
     );
     const creators = await Users.all(this.userGroupId);
 
+    const compositeGroup = await ImageCompositeGroups.withId(
+      this.compositeGroupId,
+      this.projectId,
+      this.collectionId
+    );
+
     const composites = await ImageComposites.all(
       this.projectId,
       this.collectionId,
       this.compositeGroupId
     );
 
-    // shuffle the order of the array
-    const shuffledIndexes = [...composites.keys()]
-      .map((value) => ({ value, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ value }) => value);
+    const archiveDir = "/candy-machine-" + this.compositeGroupId;
 
-    const archiveDir = "/candy-machine-" + filePath;
+    const startIndex = (this.batchNumber - 1) * this.batchSize;
+    const endIndex = Math.min(
+      startIndex + this.batchSize,
+      compositeGroup.indexes.length
+    );
+    const indexes = compositeGroup.indexes.slice(startIndex, endIndex);
 
-    for (
-      let orderNumber = 0;
-      orderNumber < shuffledIndexes.length;
-      orderNumber++
-    ) {
-      const randomCompositeNumber = shuffledIndexes[orderNumber];
+    for (let i = 0; i < indexes.length; i++) {
+      const randomCompositeNumber = indexes[i];
+      const orderNumber = startIndex + i;
       const composite = composites[randomCompositeNumber];
 
       const compositeDownloadPath = this.pathForComposite(composite);
@@ -127,8 +138,6 @@ export class CandyMachineDownloader {
       archive.on("warn", logger.warn);
 
       archive.on("finish", async () => {
-        logger.info("uploaded zip: " + filePath);
-
         // get url to download zip file with far future expiration date
         const archiveURL = await file.publicUrl();
         logger.info("archive created");

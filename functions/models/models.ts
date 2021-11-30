@@ -45,6 +45,12 @@ export interface ImageComposite {
   additionalMetadataEntries: { [attributeTitle: string]: string };
 }
 
+export interface ImageCompositeGroup {
+  id: string;
+  timestamp: number;
+  indexes: number[];
+}
+
 export interface ImageLayer {
   id: string;
   bucketFilename: string;
@@ -260,6 +266,28 @@ export namespace ImageComposites {
         return result + (traitPair.traitValue.id ?? "");
       }, "");
   };
+}
+
+export namespace ImageCompositeGroups {
+  export async function withId(
+    groupId: string,
+    projectId: string,
+    collectionId: string
+  ): Promise<ImageCompositeGroup> {
+    const groupDoc = await db
+      .doc(
+        "projects/" +
+          projectId +
+          "/collections/" +
+          collectionId +
+          "/compositeGroups/" +
+          groupId
+      )
+      .get();
+    const compositeGroup = groupDoc.data() as ImageCompositeGroup;
+    compositeGroup.id = groupDoc.id;
+    return compositeGroup;
+  }
 }
 
 export namespace ImageLayers {
