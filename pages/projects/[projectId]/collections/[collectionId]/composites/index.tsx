@@ -87,7 +87,9 @@ export default function IndexPage(props: Props) {
     setGeneratingModalOpen(true);
 
     const compositeGroup = await ImageCompositeGroups.create(
-      {} as ImageCompositeGroup,
+      {
+        timestamp: new Date().getTime(),
+      } as ImageCompositeGroup,
       projectId,
       collection.id
     );
@@ -279,7 +281,13 @@ export default function IndexPage(props: Props) {
                             <tr className="hover:bg-gray-100 cursor-pointer">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
-                                  {compositeGroup?.id ?? "Unknown"}
+                                  {compositeGroup?.timestamp
+                                    ? new Date(
+                                        compositeGroup?.timestamp ?? 0
+                                      ).toLocaleString() ?? 0
+                                    : "Date Unknown (" +
+                                      compositeGroup?.id +
+                                      ")"}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">

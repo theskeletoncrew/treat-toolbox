@@ -13,6 +13,7 @@ import { Collections } from "./collection";
 
 export default interface ImageCompositeGroup {
   id: string;
+  timestamp: number;
 }
 
 export namespace ImageCompositeGroups {
