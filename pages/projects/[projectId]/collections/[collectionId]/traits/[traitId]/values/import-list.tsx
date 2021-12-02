@@ -1,6 +1,7 @@
 import Layout from "../../../../../../../../components/Layout";
 import Header from "../../../../../../../../components/Header";
 import FormDescription from "../../../../../../../../components/FormDescription";
+import { DestructiveModal } from "../../../../../../../../components/DestructiveModal";
 import { GetServerSideProps } from "next";
 import Project, { Projects } from "../../../../../../../../models/project";
 import Collection, {
@@ -23,23 +24,19 @@ interface Props {
 }
 
 type TraitValueCSVRow = [traitValue: string, rarity: string];
+type ParsedTraitValues = { value: string; rarity: number }[];
 type TraitIdentifier = {
   projectId: string;
   collectionId: string;
   traitId: string;
 };
 
-const handleFile = async (
-  results: Papaparse.ParseResult<TraitValueCSVRow>,
-  identifier: TraitIdentifier
+const updateTraitValues = async (
+  parsedTraitValues: ParsedTraitValues,
+  identifier: TraitIdentifier,
+  existingTraitValues: TraitValue[]
 ) => {
-  const { data: rows } = results;
-  const traitValueMap = rows.map(([traitValue, rarity]) => ({
-    value: traitValue,
-    rarity: parseFloat(rarity),
-  }));
-
-  const totalRarity = traitValueMap.reduce(
+  const totalRarity = parsedTraitValues.reduce(
     (sum, { rarity }) => sum + rarity,
     0
   );
@@ -52,31 +49,49 @@ const handleFile = async (
   }
 
   const { projectId, collectionId, traitId } = identifier;
-  const createTraitValues = traitValueMap.map(async ({ value, rarity }) => {
+  const createTraitValues = parsedTraitValues.map(async ({ value, rarity }) => {
     const traitValue = {
       name: value,
       rarity,
     } as TraitValue;
 
-    return await TraitValues.create(
-      traitValue,
-      projectId,
-      collectionId,
-      traitId
+    const existingTraitValue = existingTraitValues.find(
+      ({ name }) => name === value
     );
+    if (existingTraitValue) {
+      return await TraitValues.update(
+        traitValue,
+        existingTraitValue.id,
+        projectId,
+        collectionId,
+        traitId
+      );
+    } else {
+      return await TraitValues.create(
+        traitValue,
+        projectId,
+        collectionId,
+        traitId
+      );
+    }
   });
 
   await Promise.all(createTraitValues);
 };
 
-const readFile = async (
-  file: LocalFile,
-  { projectId, collectionId, traitId }: TraitIdentifier
-) => {
+const parseTraitValues = async (
+  file: LocalFile
+): Promise<ParsedTraitValues> => {
   return new Promise((resolve, reject) => {
     Papaparse.parse(file, {
+      skipEmptyLines: true,
       complete: (results: Papaparse.ParseResult<TraitValueCSVRow>) => {
-        resolve(handleFile(results, { projectId, collectionId, traitId }));
+        const { data: rows } = results;
+        const traitValueMap = rows.map(([traitValue, rarity]) => ({
+          value: traitValue,
+          rarity: parseFloat(rarity),
+        }));
+        resolve(traitValueMap);
       },
       error: reject,
     });
@@ -90,26 +105,30 @@ export default function ImportTraitValuesPage(props: Props) {
   const trait = props.trait;
   const traitValues = props.traitValues;
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [okayToOverwrite, setOkayToOverwrite] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
 
+  const submitTraitValues = async () => {
     if (!selectedFiles) {
       return;
     }
 
-    setIsSubmitting(true);
-
     const files = Array.from(selectedFiles);
     try {
-      await readFile(files[0], {
-        projectId: project.id,
-        collectionId: collection.id,
-        traitId: trait.id,
-      });
+      const parsedTraitValues = await parseTraitValues(files[0]);
+      await updateTraitValues(
+        parsedTraitValues,
+        {
+          projectId: project.id,
+          collectionId: collection.id,
+          traitId: trait.id,
+        },
+        traitValues
+      );
 
       setIsSubmitting(false);
 
@@ -130,7 +149,28 @@ export default function ImportTraitValuesPage(props: Props) {
     } catch (e) {
       console.log("file error: " + e);
       setIsSubmitting(false);
+      setDeleteModalOpen(false);
+      setOkayToOverwrite(false);
     }
+  };
+
+  const onSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (!selectedFiles) {
+      return;
+    }
+
+    if (traitValues.length && !okayToOverwrite && !deleteModalOpen) {
+      // We have existing traits that are going to be overwritten.
+      // Confirm with user before we do this!
+      setDeleteModalOpen(true);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    await submitTraitValues();
   };
 
   return (
@@ -197,9 +237,9 @@ export default function ImportTraitValuesPage(props: Props) {
                             Please select a file with comma-separated values.
                           </p>
                           <p className="text-xs text-gray-500 pb-5">
-                            {/* {selectedFiles
+                            {selectedFiles
                               ? "[" + selectedFiles?.length + " files selected]"
-                              : ""} */}
+                              : ""}
                           </p>
                         </div>
                       </label>
@@ -220,6 +260,20 @@ export default function ImportTraitValuesPage(props: Props) {
           </div>
         </div>
       </main>
+      <DestructiveModal
+        title="Overwrite existing trait values"
+        message={`Are you sure you want to overwrite the existing trait values and rarities? This action cannot be undone.`}
+        deleteButtonTitle="Overwrite"
+        deleteAction={() => {
+          setOkayToOverwrite(true);
+          submitTraitValues();
+        }}
+        cancelAction={() => {
+          setOkayToOverwrite(false);
+          setDeleteModalOpen(false);
+        }}
+        show={deleteModalOpen}
+      />
     </Layout>
   );
 }
