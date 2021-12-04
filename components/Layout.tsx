@@ -34,6 +34,38 @@ const Layout = ({
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css"></link>
+
+        <meta
+          name="description"
+          content="Create and Launch Generative NFT Collections. Works with Metaplex Candy Machine on Solana."
+        />
+        <meta name="theme-color" content="#ffffff" />
+
+        <meta property="og:url" content="https://treattoolbox.com/" />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:title"
+          content="Treat Toolbox | The Skeleton Crew | Generative NFTs for Metaplex Candy Machine"
+        />
+        <meta
+          property="og:description"
+          content="Create and Launch Generative NFT Collections. Works with Metaplex Candy Machine on Solana."
+        />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Treat Toolbox | The Skeleton Crew | Generative NFTs for Metaplex Candy Machine"
+        />
+        <meta
+          name="twitter:description"
+          content="A tool for creating Generative NFT Collections for Metaplex Candy Machine on Solana."
+        />
+
+        <link
+          rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍬</text></svg>"
+        />
       </Head>
       <header>
         <nav className="bg-gray-800">
