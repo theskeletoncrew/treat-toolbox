@@ -101,12 +101,6 @@ export default function IndexPage(props: Props) {
                           <th
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            URL
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           ></th>
                         </tr>
                       </thead>
@@ -131,11 +125,6 @@ export default function IndexPage(props: Props) {
                                   <div className="text-sm text-gray-500 max-w-xs truncate overflow-ellipsis max-h-14">
                                     {project.description}
                                   </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className="text-xs text-gray-500 max-w-xs font-mono inline-flex leading-5">
-                                    {project.url}
-                                  </span>
                                 </td>
                                 <td align="right">
                                   <Link
