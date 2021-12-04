@@ -50,7 +50,6 @@ const schema = yup
       .trim()
       .test("template-url", "Must be a valid url", (value, _) => {
         const testURL = value?.replace(/{{([\w ]*)}}/g, "-") ?? "";
-        console.log(testURL);
         return yup
           .object({ url: yup.string().url().required() })
           .isValidSync({ url: testURL });
