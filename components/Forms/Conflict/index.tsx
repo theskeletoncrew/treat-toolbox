@@ -103,9 +103,15 @@ export const ConflictForm: React.FC<Props> = ({
     return true;
   };
 
-  const [traitSetId, setTraitSetId] = useState<string | null>(null);
-  const [trait1Id, setTrait1Id] = useState<string | null>(null);
-  const [trait2Id, setTrait2Id] = useState<string | null>(null);
+  const [traitSetId, setTraitSetId] = useState<string | null>(
+    conflict?.traitSetId ?? null
+  );
+  const [trait1Id, setTrait1Id] = useState<string | null>(
+    conflict?.trait1Id ?? null
+  );
+  const [trait2Id, setTrait2Id] = useState<string | null>(
+    conflict?.trait2Id ?? null
+  );
 
   const onChangeTraitSetId = async (traitSetId: string) => {
     setTraitSetId(traitSetId);
