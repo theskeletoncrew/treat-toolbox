@@ -15,7 +15,13 @@ export const MainNavItem = (props: {
 
   return (
     <Link href={path}>
-      <a className={selected ? selectedClass : unselectedClass}>{title}</a>
+      <a
+        className={
+          "whitespace-nowrap " + (selected ? selectedClass : unselectedClass)
+        }
+      >
+        {title}
+      </a>
     </Link>
   );
 };
