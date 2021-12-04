@@ -109,7 +109,7 @@ export const TraitForm: React.FC<Props> = ({
                 type="text"
                 id="zIndex"
                 {...register("zIndex")}
-                placeholder="0"
+                placeholder="1"
                 className="mt-1 block w-full shadow-sm sm:text-sm rounded-md border-transparent"
               />
               {errors.zIndex && (
