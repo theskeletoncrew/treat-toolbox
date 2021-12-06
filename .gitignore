@@ -31,3 +31,5 @@
 
 # vercel
 .vercel
+
+functions/backup/*
