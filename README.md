@@ -129,16 +129,13 @@ y [Yes]
 
 ```bash
 npm install --prefix=functions
-npm run build --prefix=functions
-
-# IMPORTANT: 
-# when starting the firebase emulators, specify a directory you have access to
-# to save your work. for ex. to save to a folder called "backup" use the 
-# firebase command below with import and export-on-exit params as shown:  
-firebase emulators:start --import backup --export-on-exit backup
+# This builds the functions and starts the emulator set up to save to a folder called "backup" under the "functions" folder.
+npm run serve --prefix=functions
 ```
 
-**_Note_**: _If the emulators fail to start, see `firestore-debug.log`. One common cause for failure is that you may need to install the [java runtime](http://www.java.com.)_
+**_Notes_**: _If you have been using a older version of Treat Toolbox, your backup may be in a different location. You can move the folder under the `functions` folder when the emulator isn't running._
+
+_If the emulators fail to start, see `firestore-debug.log`. One common cause for failure is that you may need to install the [java runtime](http://www.java.com.)_
 
 11. When the emulators start, the API url for your cloud functions will be output in the form:
 
