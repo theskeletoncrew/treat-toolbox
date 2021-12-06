@@ -262,7 +262,7 @@ export default function ImportTraitValuesPage(props: Props) {
       </main>
       <DestructiveModal
         title="Overwrite existing trait values"
-        message={`Are you sure you want to overwrite the existing trait values and rarities? This action cannot be undone.`}
+        message={`Are you sure you want to replace all existing trait values and rarities with those in the uploaded list? This action cannot be undone.`}
         deleteButtonTitle="Overwrite"
         deleteAction={() => {
           setOkayToOverwrite(true);
