@@ -10,4 +10,7 @@ module.exports = {
     config.plugins.push(new IgnorePlugin(/functions/));
     return config;
   },
+  experimental: {
+    scrollRestoration: true,
+  },
 };
