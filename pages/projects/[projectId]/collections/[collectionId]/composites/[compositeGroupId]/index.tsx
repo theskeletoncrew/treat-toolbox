@@ -249,7 +249,7 @@ export default function IndexPage(props: Props) {
                 "Exporting items " +
                 exportedItems +
                 "-" +
-                (exportedItems + BATCH_SIZE) +
+                Math.min(composites.length, exportedItems + BATCH_SIZE) +
                 " of " +
                 composites.length
               }
