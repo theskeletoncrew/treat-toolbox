@@ -28,17 +28,21 @@ export default function IndexPage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const compositeGroupId = props.compositeGroupId;
-  const composite = props.composite;
   const compositeId = props.compositeId;
   const projectId = props.projectId;
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [composite, setComposite] = useState<ImageComposite>(props.composite);
 
   const router = useRouter();
 
   const confirmDeleteComposite = (event: React.MouseEvent) => {
     event.preventDefault();
     setDeleteModalOpen(true);
+  };
+
+  const compositeDidUpdate = async (updatedComposite: ImageComposite) => {
+    setComposite(updatedComposite);
   };
 
   const deleteComposite = async () => {
@@ -102,16 +106,25 @@ export default function IndexPage(props: Props) {
             collection={collection}
             section="composites"
           />
+
           <main>
-            {/* <div className="mt-4 mr-8 float-right">
+            <div className="mt-4 mr-8 float-right">
+              <button
+                type="button"
+                className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                onClick={(e) => confirmDeleteComposite(e)}
+              >
+                Delete Composite
+              </button>
+              {/*
               <button
                 type="button"
                 className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 onClick={(e) => mintToWallet()}
               >
                 Mint to Wallet
-              </button>
-            </div> */}
+              </button>*/}
+            </div>
             <div className="flex flex-col clear-both px-8 py-4">
               <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -168,13 +181,6 @@ export default function IndexPage(props: Props) {
 
                       <br className="clear-both" />
 
-                      <button
-                        type="button"
-                        className="ml-4 mt-10 px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        onClick={(e) => confirmDeleteComposite(e)}
-                      >
-                        Delete
-                      </button>
                     </div>
                   </div>
                 </div>
