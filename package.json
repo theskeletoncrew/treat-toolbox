@@ -28,6 +28,7 @@
     "fs": "^0.0.1-security",
     "jest": "^27.0.6",
     "next": "^11.1.2",
+    "papaparse": "^5.3.1",
     "pino": "^6.13.3",
     "react": "17.0.2",
     "react-cookie": "^4.1.1",
@@ -39,6 +40,7 @@
     "yup": "^0.32.11"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.3.1",
     "@types/react": "17.0.19",
     "@types/uuid": "^8.3.1",
     "autoprefixer": "^10.3.1",
