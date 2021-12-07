@@ -3,7 +3,10 @@ import Layout from "../../../../../components/Layout";
 import DropsSubnav from "../../../../../components/DropsSubnav";
 import { PencilAltIcon } from "@heroicons/react/outline";
 import Project, { Projects } from "../../../../../models/project";
-import Collection, { Collections } from "../../../../../models/collection";
+import Collection, {
+  Collections,
+  CollectionType,
+} from "../../../../../models/collection";
 import UserGroup, { UserGroups } from "../../../../../models/userGroup";
 import { GetServerSideProps } from "next";
 
@@ -83,14 +86,6 @@ export default function IndexPage(props: Props) {
               </div>
               <div className="border-t border-gray-200">
                 <dl>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">
-                      Project
-                    </dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                      {project?.name}
-                    </dd>
-                  </div>
                   <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt className="text-sm font-medium text-gray-500">
                       Collection Name
@@ -105,6 +100,18 @@ export default function IndexPage(props: Props) {
                     </dt>
                     <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                       {collection.nftName}
+                    </dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">
+                      Collection Type
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      {collection.type == CollectionType.Generative
+                        ? "Generative"
+                        : collection.type == CollectionType.Prerendered
+                        ? "Prerendered"
+                        : "Tilemapped"}
                     </dd>
                   </div>
                   <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -129,6 +136,14 @@ export default function IndexPage(props: Props) {
                     </dt>
                     <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                       {collection.symbol}
+                    </dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">
+                      External NFT URL
+                    </dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      {collection.url}
                     </dd>
                   </div>
                   <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
