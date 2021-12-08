@@ -25,12 +25,17 @@ export default function App({ Component, pageProps }: AppProps) {
         signInWithRedirect(auth, provider);
 
         getRedirectResult(auth).then((result) => {
-          // This gives you a Google Access Token. You can use it to access Google APIs.
-          const credential = GoogleAuthProvider.credentialFromResult(result);
-          const token = credential.accessToken;
+          if (result) {
+            // This gives you a Google Access Token. You can use it to access Google APIs.
+            const credential = GoogleAuthProvider.credentialFromResult(result);
 
-          // The signed-in user info.
-          const user = result.user;
+            if (credential) {
+              const token = credential.accessToken;
+
+              // The signed-in user info.
+              const user = result.user;
+            }
+          }
         }).catch((error) => {
           // Handle Errors here.
           const errorCode = error.code;
