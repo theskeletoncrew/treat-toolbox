@@ -40,9 +40,11 @@ const updateTraitValues = async (
     (sum, { rarity }) => sum + rarity,
     0
   );
-  if (totalRarity !== 1) {
+  const expectedTotal = 1;
+
+  if (totalRarity.toFixed(10) !== expectedTotal.toFixed(10)) {
     const message = `Total rarity did not add up to 1, got ${totalRarity.toFixed(
-      2
+      10
     )} instead.`;
     alert(message);
     throw new Error(message);
