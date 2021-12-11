@@ -71,7 +71,7 @@ export default function IndexPage(props: Props) {
 
     const urls: string[] = [];
 
-    for (let i = 0; i < composites.length / BATCH_SIZE && i < 2; i++) {
+    for (let i = 0; i < composites.length / BATCH_SIZE; i++) {
       setExportedItems(i * BATCH_SIZE);
 
       const response = await fetch(
