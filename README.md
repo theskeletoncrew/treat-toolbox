@@ -154,23 +154,9 @@ npm run dev
 
 # Working with Treat Toolbox
 
+Check out the [Product Documentation](https://docs.treattoolbox.com/)
+
 Here's a video of the basic usage of Treat Toolbox: https://vimeo.com/633276431  
-
-### User Groups
-
-To start, you'll want to create a user group that contains all of your project creators (those that will receive secondary sales royalties).
-
-### Projects & Drops
-
-Next create a project, and tap in to add your first "Drop" – a collection you plan to mint with [Candy Machine](https://github.com/metaplex-foundation/metaplex) and share with the world!
-
-### Traits/Artwork/Conflicts/Composites
-
-Tapping into the Drop will give you access to the tools necessary to define Traits, upload your Artwork and assign it to those Traits' values, specify any potential Conflicts that may exist between different image layers, and generate your final Composites.
-
-### Export
-
-Finally, for a generated Composite Set, you can use the "" feature to export a complete set of numbered images and metadata (PNG+JSON) ready for use with [Metaplex's Candy Machine](https://github.com/metaplex-foundation/metaplex)!
 
 ### Quick Start
 
