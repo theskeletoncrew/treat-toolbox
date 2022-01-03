@@ -227,7 +227,7 @@ export const TraitForm: React.FC<Props> = ({
                       <input
                         type="checkbox"
                         id={"traitSet-" + traitSet.id}
-                        {...register(`traitSetIds`)}
+                        {...register(`traitSetIds`, { value: [] })}
                         className="traitSetCheckbox shadow-sm sm:text-sm rounded-md border-transparent inline-block mr-2"
                         defaultChecked={trait?.traitSetIds?.includes(
                           traitSet.id
