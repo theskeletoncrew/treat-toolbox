@@ -39,7 +39,7 @@ export const TraitForm: React.FC<Props> = ({
     formState: { errors },
   } = useForm<Trait>({
     resolver: yupResolver(schema),
-    defaultValues: trait ?? {},
+    defaultValues: trait ?? { traitSetIds: [] },
   });
 
   const router = useRouter();
