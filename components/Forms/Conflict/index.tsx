@@ -41,17 +41,36 @@ export const ConflictForm: React.FC<Props> = ({
               .string()
               .notOneOf(["-1"], "This field is required")
               .required("This field is required")
+              .transform((value) => {
+                return value == "-1" ? null : value;
+              })
           : yup.string().notRequired(),
       trait1Id: yup
         .string()
         .notOneOf(["-1"], "This field is required")
-        .required("This field is required"),
-      trait1ValueId: yup.string().required("This field is required"),
+        .transform((value) => {
+          return value == "-1" ? null : value;
+        })
+        .nullable(),
+      trait1ValueId: yup
+        .string()
+        .transform((value) => {
+          return value == "-1" ? null : value;
+        })
+        .nullable(),
       trait2Id: yup
         .string()
         .notOneOf(["-1"], "This field is required")
-        .required("This field is required"),
-      trait2ValueId: yup.string().required("This field is required"),
+        .transform((value) => {
+          return value == "-1" ? null : value;
+        })
+        .nullable(),
+      trait2ValueId: yup
+        .string()
+        .transform((value) => {
+          return value == "-1" ? null : value;
+        })
+        .nullable(),
       resolutionType: yup
         .number()
         .oneOf([
