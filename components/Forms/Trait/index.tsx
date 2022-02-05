@@ -22,6 +22,10 @@ const schema = yup
       .typeError("Must be a positive number")
       .positive("Must be a positive number")
       .required("This field is required"),
+    excludeFromDuplicateDetection: yup.boolean(),
+    isMetadataOnly: yup.boolean(),
+    isArtworkOnly: yup.boolean(),
+    isAlwaysUnique: yup.boolean(),
   })
   .required();
 
