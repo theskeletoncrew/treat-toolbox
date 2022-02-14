@@ -97,7 +97,7 @@ export default function IndexPage(props: Props) {
 
   const totalRarity =
     traitValues.length > 0
-      ? traitValues.map((a) => a.rarity).reduce((a, b) => a + b)
+      ? Number(traitValues.map((a) => a.rarity).reduce((a, b) => Number(a) + Number(b)))
       : 0;
   const noneRarity = 1 - totalRarity;
 
@@ -370,7 +370,7 @@ export default function IndexPage(props: Props) {
                             </td>
                             <td className="px-6 py-4">
                               <div className="max-w-sm text-sm italic text-gray-500 truncate overflow-ellipsis max-h-14">
-                                {noneRarity}
+                                {noneRarity.toFixed(5)}
                               </div>
                             </td>
                             <td></td>
@@ -380,80 +380,54 @@ export default function IndexPage(props: Props) {
                         )}
                         {traitValues?.map((traitValue) => {
                           return (
-                            /*
-                            <Link
+                            <tr
                               key={traitValue.id}
-                              href={
-                                "/projects/" +
-                                project.id +
-                                "/collections/" +
-                                collection.id +
-                                "/traits/" +
-                                trait.id +
-                                "/values/" +
-                                traitValue.id
-                              }
-                              passHref={true}
+                              className="cursor-pointer hover:bg-gray-100"
                             >
-                            */
-                              <tr
-                                key={traitValue.id}
-                                className="cursor-pointer hover:bg-gray-100"
+                              <TraitInlineInput
+                                traitValue={traitValue}
+                                projectId={project.id}
+                                collectionId={collection.id}
+                                trait={trait}
+                              />
+                              <td align="right">
+                                <Link
+                                  href={
+                                    "/projects/" +
+                                    project.id +
+                                    "/collections/" +
+                                    collection.id +
+                                    "/traits/" +
+                                    trait.id +
+                                    "/values/" +
+                                    traitValue.id
+                                  }
+                                  passHref={true}
+                                >
+                                <a
+                                  href="#"
+                                  className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
+                                >
+                                <PencilAltIcon
+                                  className="w-5 h-5 text-gray-400"
+                                  aria-hidden="true"
+                                />
+                                </a>
+                              </Link>
+                              <a
+                                href="#"
+                                onClick={(e) =>
+                                  confirmDeleteTraitValue(e, traitValue.id)
+                                }
+                                className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
                               >
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">
-                                    <TraitInlineInput type="name" value={traitValue?.name || "Unknown"}/>
-                                  </div>
-                                </td>
-
-                                {trait.isAlwaysUnique ? (
-                                  ""
-                                ) : (
-                                  <td className="px-6 py-4">
-                                    <div className="max-w-sm text-sm text-gray-500 truncate overflow-ellipsis max-h-14">
-                                      <TraitInlineInput type="rarity" value={traitValue?.rarity}/>
-                                    </div>
-                                  </td>
-                                )}
-                                <td align="right">
-                                  <Link
-                                    href={
-                                      "/projects/" +
-                                      project.id +
-                                      "/collections/" +
-                                      collection.id +
-                                      "/traits/" +
-                                      trait.id +
-                                      "/values/" +
-                                      traitValue.id
-                                    }
-                                    passHref={true}
-                                  >
-                                    <a
-                                      href="#"
-                                      className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
-                                    >
-                                      <PencilAltIcon
-                                        className="w-5 h-5 text-gray-400"
-                                        aria-hidden="true"
-                                      />
-                                    </a>
-                                  </Link>
-                                  <a
-                                    href="#"
-                                    onClick={(e) =>
-                                      confirmDeleteTraitValue(e, traitValue.id)
-                                    }
-                                    className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
-                                  >
-                                    <TrashIcon
-                                      className="w-5 h-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </a>
-                                </td>
-                              </tr>
-                            //</Link>
+                                <TrashIcon
+                                  className="w-5 h-5 text-gray-400"
+                                  aria-hidden="true"
+                                />
+                              </a>
+                            </td>
+                          </tr>
                           );
                         })}
                       </tbody>
