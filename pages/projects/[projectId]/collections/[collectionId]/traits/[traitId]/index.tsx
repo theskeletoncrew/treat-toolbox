@@ -19,7 +19,7 @@ import TraitValue, {
   TraitValues,
 } from "../../../../../../../models/traitValue";
 import { DestructiveModal } from "../../../../../../../components/DestructiveModal";
-import { TraitInlineInput } from "../../../../../../../components/TraitInlineInput";
+import { TraitValuesRow } from "../../../../../../../components/TraitValuesRow";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
@@ -384,7 +384,7 @@ export default function IndexPage(props: Props) {
                               key={traitValue.id}
                               className="cursor-pointer hover:bg-gray-100"
                             >
-                              <TraitInlineInput
+                              <TraitValuesRow
                                 traitValue={traitValue}
                                 projectId={project.id}
                                 collectionId={collection.id}

@@ -10,8 +10,7 @@ interface Props {
   trait: Trait
 }
 
-// NEED TO REMOVE CONSOLE.LOGS
-export const TraitInlineInput: React.FC<Props> = ({
+export const TraitValuesRow: React.FC<Props> = ({
     traitValue,
     projectId,
     collectionId,
@@ -75,7 +74,6 @@ export const TraitInlineInput: React.FC<Props> = ({
         name: newValue.name,
         rarity: (e.target.value)
       });
-      console.log("AH");
       return;
     }
 
