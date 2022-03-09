@@ -26,7 +26,7 @@ interface Props {
   userGroupId: string;
 }
 
-const BATCH_SIZE = 500;
+const BATCH_SIZE = Number(process.env.NEXT_PUBLIC_EXPORT_BATCH_SIZE ?? 500);
 
 export default function IndexPage(props: Props) {
   const project = props.project;
