@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import TraitValue, { TraitValues } from "../../models/traitValue";
 import Trait from "../../models/trait";
 
@@ -17,7 +17,7 @@ export const TraitValuesRow: React.FC<Props> = ({
     trait,
 }) => {
   const [newValue, setNewValue] = useState(traitValue);
-  const [setLastValidValue, setPrevTraitValue] = useState(traitValue);
+  const [prevValue, setPrevValue] = useState(traitValue);
 
   const isNumber = (input: string) => {
     if (typeof(input) !== "string") {
@@ -27,48 +27,7 @@ export const TraitValuesRow: React.FC<Props> = ({
   }
 
   const editTraitInline = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    if (type == "name" && e.target.value === "") {
-      setNewValue({
-        id: traitValue.id,
-        name: setLastValidValue.name,
-        rarity: newValue.rarity
-      });
-      alert("Name cannot be blank.");
-      return;
-    }
-
-    if (type === "rarity") {
-      if (e.target.value === "") {
-        setNewValue({
-          id: traitValue.id,
-          name: newValue.name,
-          rarity: setLastValidValue.rarity
-        });
-        alert("Rarity cannot be blank.");
-        return;
-      }
-      if (!isNumber(e.target.value)) {
-        setNewValue({
-          id: traitValue.id,
-          name: newValue.name,
-          rarity: setLastValidValue.rarity
-        });
-        alert("Rarity must be a number between 0 and 1.");
-        return;
-      }
-
-      const rarity = parseFloat(e.target.value);
-      if (0 > rarity || rarity > 1) {
-        setNewValue({
-          id: traitValue.id,
-          name: newValue.name,
-          rarity: setLastValidValue.rarity
-        });
-        alert("Rarity must be a number between 0 and 1.");
-        return;
-      }
-
-      // Input is valid rarity
+    if (type === 'rarity') {
       setNewValue({
         id: traitValue.id,
         name: newValue.name,
@@ -77,19 +36,67 @@ export const TraitValuesRow: React.FC<Props> = ({
       return;
     }
 
-      // Input is valid name
-      setNewValue({
-        id: traitValue.id,
-        name: e.target.value,
-        rarity: newValue.rarity
-      });
-      return;
+    setNewValue({
+      id: traitValue.id,
+      name: e.target.value,
+      rarity: newValue.rarity
+    });
+    return;
   }
 
-  const updateValues = async (data: TraitValue) => {
-    data.rarity = Number(data.rarity);
-    setPrevTraitValue(data);
+  const submitWithEnter = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      updateValues();
+    }
+    return;
+  }
 
+  const updateValues = async () => {
+    let data = newValue;
+
+    if (data.name === "") {
+      setNewValue({
+        id: traitValue.id,
+        name: prevValue.name,
+        rarity: newValue.rarity
+      });
+      alert("Name cannot be blank.");
+      return;
+    }
+
+    if (String(data.rarity) === "") {
+      setNewValue({
+        id: traitValue.id,
+        name: newValue.name,
+        rarity: prevValue.rarity
+      });
+      alert("Rarity cannot be blank.");
+      return;
+    }
+
+    data.rarity = Number(data.rarity);
+
+    if (!isNumber(String(data.rarity))) {
+      setNewValue({
+        id: traitValue.id,
+        name: newValue.name,
+        rarity: prevValue.rarity
+      });
+      alert("Rarity must be a number between 0 and 1.");
+      return;
+    }
+
+    if (0 > data.rarity || data.rarity > 1) {
+      setNewValue({
+        id: traitValue.id,
+        name: newValue.name,
+        rarity: prevValue.rarity
+      });
+      alert("Rarity must be a number between 0 and 1.");
+      return;
+    }
+
+    setPrevValue(data);
     await TraitValues.update(
       data,
       traitValue.id,
@@ -104,10 +111,11 @@ export const TraitValuesRow: React.FC<Props> = ({
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-900">
           <input
-            className="input-value"
+            className="p-2 input-value"
             value={newValue.name}
             onChange={e => editTraitInline(e, "name")}
-            onBlur={() => updateValues(newValue)}
+            onBlur={() => updateValues()}
+            onKeyDown={(e) => submitWithEnter(e)}
           >
           </input>
         </div>
@@ -119,10 +127,11 @@ export const TraitValuesRow: React.FC<Props> = ({
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="text-sm text-gray-900">
             <input
-              className="input-value"
+              className="p-2 input-value"
               value={newValue.rarity}
               onChange={e => editTraitInline(e, "rarity")}
-              onBlur={() => updateValues(newValue)}
+              onBlur={() => updateValues()}
+              onKeyDown={(e) => submitWithEnter(e)}
             >
             </input>
           </div>
