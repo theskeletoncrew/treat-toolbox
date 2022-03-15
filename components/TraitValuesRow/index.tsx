@@ -31,7 +31,7 @@ export const TraitValuesRow: React.FC<Props> = ({
       setNewValue({
         id: traitValue.id,
         name: newValue.name,
-        rarity: (e.target.value)
+        rarity: e.target.value
       });
       return;
     }
@@ -48,7 +48,6 @@ export const TraitValuesRow: React.FC<Props> = ({
     if (event.key === 'Enter') {
       updateValues();
     }
-    return;
   }
 
   const updateValues = async () => {
@@ -83,6 +82,10 @@ export const TraitValuesRow: React.FC<Props> = ({
         rarity: prevValue.rarity
       });
       alert("Rarity must be a number between 0 and 1.");
+      return;
+    }
+
+    if (prevValue.rarity == -1 && data.rarity == -1) {
       return;
     }
 

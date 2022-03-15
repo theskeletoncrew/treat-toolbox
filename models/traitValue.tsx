@@ -18,7 +18,7 @@ import { Traits } from "./trait";
 export default interface TraitValue {
   id: string;
   name: string;
-  rarity: number | string; // string to allow . or trailing 0s in inline editing
+  rarity: number;
 }
 
 export namespace TraitValues {
