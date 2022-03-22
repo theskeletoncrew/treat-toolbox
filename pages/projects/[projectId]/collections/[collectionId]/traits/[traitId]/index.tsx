@@ -19,6 +19,7 @@ import TraitValue, {
   TraitValues,
 } from "../../../../../../../models/traitValue";
 import { DestructiveModal } from "../../../../../../../components/DestructiveModal";
+import { TraitValuesRow } from "../../../../../../../components/TraitValuesRow";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
@@ -96,7 +97,7 @@ export default function IndexPage(props: Props) {
 
   const totalRarity =
     traitValues.length > 0
-      ? traitValues.map((a) => a.rarity).reduce((a, b) => a + b)
+      ? Number(traitValues.map((a) => a.rarity).reduce((a, b) => Number(a) + Number(b)))
       : 0;
   const noneRarity = 1 - totalRarity;
 
@@ -152,7 +153,7 @@ export default function IndexPage(props: Props) {
               </button>
             </Link>
 
-            <p className="italic text-sm text-center mt-6 mb-6">or</p>
+            <p className="mt-6 mb-6 text-sm italic text-center">or</p>
 
             <div className="w-full text-center">
               <Link
@@ -169,10 +170,10 @@ export default function IndexPage(props: Props) {
               >
                 <button
                   type="button"
-                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   <DocumentDuplicateIcon
-                    className="-ml-1 mr-1 h-5 w-5"
+                    className="w-5 h-5 mr-1 -ml-1"
                     aria-hidden="true"
                   />
                   Add a List of Values
@@ -180,7 +181,7 @@ export default function IndexPage(props: Props) {
               </Link>
             </div>
 
-            <p className="italic text-sm text-center mt-6 mb-6">or</p>
+            <p className="mt-6 mb-6 text-sm italic text-center">or</p>
 
             <div className="w-full text-center">
               <Link
@@ -197,10 +198,10 @@ export default function IndexPage(props: Props) {
               >
                 <button
                   type="button"
-                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   <DocumentAddIcon
-                    className="-ml-1 mr-1 h-5 w-5"
+                    className="w-5 h-5 mr-1 -ml-1"
                     aria-hidden="true"
                   />
                   Import a List of Values
@@ -226,7 +227,7 @@ export default function IndexPage(props: Props) {
             section="traits"
           />
           <main className="px-8 py-12">
-            <div className="mb-6 float-right">
+            <div className="float-right mb-6">
               <span className="pr-4">
                 <Link
                   href={
@@ -242,10 +243,10 @@ export default function IndexPage(props: Props) {
                 >
                   <button
                     type="button"
-                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <DocumentAddIcon
-                      className="-ml-1 mr-1 h-5 w-5"
+                      className="w-5 h-5 mr-1 -ml-1"
                       aria-hidden="true"
                     />
                     Add Value
@@ -268,10 +269,10 @@ export default function IndexPage(props: Props) {
                 >
                   <button
                     type="button"
-                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <DocumentDuplicateIcon
-                      className="-ml-1 mr-1 h-5 w-5"
+                      className="w-5 h-5 mr-1 -ml-1"
                       aria-hidden="true"
                     />
                     Add a List of Values
@@ -294,10 +295,10 @@ export default function IndexPage(props: Props) {
                 >
                   <button
                     type="button"
-                    className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <DocumentAddIcon
-                      className="-ml-1 mr-1 h-5 w-5"
+                      className="w-5 h-5 mr-1 -ml-1"
                       aria-hidden="true"
                     />
                     Import a List of Values
@@ -308,11 +309,11 @@ export default function IndexPage(props: Props) {
               <span>
                 <button
                   type="button"
-                  className="inline-flex items-center px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   onClick={(e) => distributeRarity()}
                 >
                   <ChartPieIcon
-                    className="-ml-1 mr-1 h-5 w-5"
+                    className="w-5 h-5 mr-1 -ml-1"
                     aria-hidden="true"
                   />
                   Distribute Rarity Evenly
@@ -332,14 +333,14 @@ export default function IndexPage(props: Props) {
 
             <div className="flex flex-col clear-both">
               <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                  <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                  <div className="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                           >
                             Value Name
                           </th>
@@ -348,14 +349,14 @@ export default function IndexPage(props: Props) {
                           ) : (
                             <th
                               scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                             >
                               Rarity
                             </th>
                           )}
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                           ></th>
                         </tr>
                       </thead>
@@ -368,8 +369,8 @@ export default function IndexPage(props: Props) {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="text-sm italic text-gray-500 max-w-sm truncate overflow-ellipsis max-h-14">
-                                {noneRarity}
+                              <div className="max-w-sm text-sm italic text-gray-500 truncate overflow-ellipsis max-h-14">
+                                {noneRarity.toFixed(5)}
                               </div>
                             </td>
                             <td></td>
@@ -379,78 +380,54 @@ export default function IndexPage(props: Props) {
                         )}
                         {traitValues?.map((traitValue) => {
                           return (
-                            <Link
+                            <tr
                               key={traitValue.id}
-                              href={
-                                "/projects/" +
-                                project.id +
-                                "/collections/" +
-                                collection.id +
-                                "/traits/" +
-                                trait.id +
-                                "/values/" +
-                                traitValue.id
-                              }
-                              passHref={true}
+                              className="cursor-pointer hover:bg-gray-100"
                             >
-                              <tr
-                                key={traitValue.id}
-                                className="hover:bg-gray-100 cursor-pointer"
+                              <TraitValuesRow
+                                traitValue={traitValue}
+                                projectId={project.id}
+                                collectionId={collection.id}
+                                trait={trait}
+                              />
+                              <td align="right">
+                                <Link
+                                  href={
+                                    "/projects/" +
+                                    project.id +
+                                    "/collections/" +
+                                    collection.id +
+                                    "/traits/" +
+                                    trait.id +
+                                    "/values/" +
+                                    traitValue.id
+                                  }
+                                  passHref={true}
+                                >
+                                <a
+                                  href="#"
+                                  className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
+                                >
+                                <PencilAltIcon
+                                  className="w-5 h-5 text-gray-400"
+                                  aria-hidden="true"
+                                />
+                                </a>
+                              </Link>
+                              <a
+                                href="#"
+                                onClick={(e) =>
+                                  confirmDeleteTraitValue(e, traitValue.id)
+                                }
+                                className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
                               >
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">
-                                    {traitValue?.name || "Unknown"}
-                                  </div>
-                                </td>
-
-                                {trait.isAlwaysUnique ? (
-                                  ""
-                                ) : (
-                                  <td className="px-6 py-4">
-                                    <div className="text-sm text-gray-500 max-w-sm truncate overflow-ellipsis max-h-14">
-                                      {traitValue?.rarity}
-                                    </div>
-                                  </td>
-                                )}
-                                <td align="right">
-                                  <Link
-                                    href={
-                                      "/projects/" +
-                                      project.id +
-                                      "/collections/" +
-                                      collection.id +
-                                      "/traits/" +
-                                      trait.id +
-                                      "/values/" +
-                                      traitValue.id
-                                    }
-                                    passHref={true}
-                                  >
-                                    <a
-                                      href="#"
-                                      className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
-                                    >
-                                      <PencilAltIcon
-                                        className="h-5 w-5 text-gray-400"
-                                        aria-hidden="true"
-                                      />
-                                    </a>
-                                  </Link>
-                                  <a
-                                    href="#"
-                                    onClick={(e) =>
-                                      confirmDeleteTraitValue(e, traitValue.id)
-                                    }
-                                    className="text-indigo-600 hover:text-indigo-900 inline-block mr-2"
-                                  >
-                                    <TrashIcon
-                                      className="h-5 w-5 text-gray-400"
-                                      aria-hidden="true"
-                                    />
-                                  </a>
-                                </td>
-                              </tr>
-                            </Link>
+                                <TrashIcon
+                                  className="w-5 h-5 text-gray-400"
+                                  aria-hidden="true"
+                                />
+                              </a>
+                            </td>
+                          </tr>
                           );
                         })}
                       </tbody>
