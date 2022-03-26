@@ -252,7 +252,7 @@ export default function IndexPage(props: Props) {
 
           ImageLayers.update(
             {
-              traitSetId: traitSet?.id,
+              traitSetId: traitSet?.id || -1,
               traitId: trait.id,
               traitValueId: traitValue.id,
             },
