@@ -4,34 +4,39 @@ import TraitValue, { TraitValues } from "../../models/traitValue";
 import Trait from "../../models/trait";
 
 interface Props {
-  traitValue: TraitValue,
-  projectId: string,
-  collectionId: string,
-  trait: Trait
+  traitValue: TraitValue;
+  projectId: string;
+  collectionId: string;
+  trait: Trait;
+  handleTraitValueChange: (data: TraitValue) => void;
 }
 
 export const TraitValuesRow: React.FC<Props> = ({
-    traitValue,
-    projectId,
-    collectionId,
-    trait,
+  traitValue,
+  projectId,
+  collectionId,
+  trait,
+  handleTraitValueChange,
 }) => {
   const [newValue, setNewValue] = useState(traitValue);
   const [prevValue, setPrevValue] = useState(traitValue);
 
   const isNumber = (input: string) => {
-    if (typeof(input) !== "string") {
+    if (typeof input !== "string") {
       return false;
     }
     return !isNaN(Number(input)) && !isNaN(parseFloat(input));
-  }
+  };
 
-  const editTraitInline = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    if (type === 'rarity') {
+  const editTraitInline = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
+    if (type === "rarity") {
       setNewValue({
         id: traitValue.id,
         name: newValue.name,
-        rarity: e.target.value
+        rarity: e.target.value,
       });
       return;
     }
@@ -39,16 +44,18 @@ export const TraitValuesRow: React.FC<Props> = ({
     setNewValue({
       id: traitValue.id,
       name: e.target.value,
-      rarity: newValue.rarity
+      rarity: newValue.rarity,
     });
     return;
-  }
+  };
 
-  const submitWithEnter = async (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+  const submitWithEnter = async (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
       updateValues();
     }
-  }
+  };
 
   const updateValues = async () => {
     let data = newValue;
@@ -57,7 +64,7 @@ export const TraitValuesRow: React.FC<Props> = ({
       setNewValue({
         id: traitValue.id,
         name: prevValue.name,
-        rarity: newValue.rarity
+        rarity: newValue.rarity,
       });
       alert("Name cannot be blank.");
       return;
@@ -67,7 +74,7 @@ export const TraitValuesRow: React.FC<Props> = ({
       setNewValue({
         id: traitValue.id,
         name: newValue.name,
-        rarity: prevValue.rarity
+        rarity: prevValue.rarity,
       });
       alert("Rarity cannot be blank.");
       return;
@@ -79,7 +86,7 @@ export const TraitValuesRow: React.FC<Props> = ({
       setNewValue({
         id: traitValue.id,
         name: newValue.name,
-        rarity: prevValue.rarity
+        rarity: prevValue.rarity,
       });
       alert("Rarity must be a number between 0 and 1.");
       return;
@@ -93,7 +100,7 @@ export const TraitValuesRow: React.FC<Props> = ({
       setNewValue({
         id: traitValue.id,
         name: newValue.name,
-        rarity: prevValue.rarity
+        rarity: prevValue.rarity,
       });
       alert("Rarity must be a number between 0 and 1.");
       return;
@@ -107,7 +114,8 @@ export const TraitValuesRow: React.FC<Props> = ({
       collectionId,
       trait.id
     );
-  }
+    handleTraitValueChange(data as TraitValue);
+  };
 
   return (
     <>
@@ -116,11 +124,10 @@ export const TraitValuesRow: React.FC<Props> = ({
           <input
             className="p-2 input-value"
             value={newValue.name}
-            onChange={e => editTraitInline(e, "name")}
+            onChange={(e) => editTraitInline(e, "name")}
             onBlur={() => updateValues()}
             onKeyDown={(e) => submitWithEnter(e)}
-          >
-          </input>
+          ></input>
         </div>
       </td>
 
@@ -132,14 +139,13 @@ export const TraitValuesRow: React.FC<Props> = ({
             <input
               className="p-2 input-value"
               value={newValue.rarity}
-              onChange={e => editTraitInline(e, "rarity")}
+              onChange={(e) => editTraitInline(e, "rarity")}
               onBlur={() => updateValues()}
               onKeyDown={(e) => submitWithEnter(e)}
-            >
-            </input>
+            ></input>
           </div>
         </td>
       )}
     </>
   );
-}
+};

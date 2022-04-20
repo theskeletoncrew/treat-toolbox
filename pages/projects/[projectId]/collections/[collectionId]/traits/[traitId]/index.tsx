@@ -36,12 +36,12 @@ export default function IndexPage(props: Props) {
   const projects = props.projects;
   const collection = props.collection;
   const trait = props.trait;
-  const traitValues = props.traitValues;
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [traitValueIdToDelete, setTraitValueIdToDelete] = useState<
     string | null
   >(null);
+  const [traitValues, setTraitValues] = useState(props.traitValues);
 
   const router = useRouter();
 
@@ -95,9 +95,23 @@ export default function IndexPage(props: Props) {
     router.reload();
   };
 
+  const handleTraitValueChange = (data: TraitValue) => {
+    const traitValuesCopy = [...traitValues];
+    traitValuesCopy.forEach((traitValue) => {
+      if (traitValue.id === data.id) {
+        traitValue.rarity = data.rarity;
+      }
+    });
+    setTraitValues(traitValuesCopy);
+  };
+
   const totalRarity =
     traitValues.length > 0
-      ? Number(traitValues.map((a) => a.rarity).reduce((a, b) => Number(a) + Number(b)))
+      ? Number(
+          traitValues
+            .map((a) => a.rarity)
+            .reduce((a, b) => Number(a) + Number(b))
+        )
       : 0;
   const noneRarity = 1 - totalRarity;
 
@@ -389,6 +403,7 @@ export default function IndexPage(props: Props) {
                                 projectId={project.id}
                                 collectionId={collection.id}
                                 trait={trait}
+                                handleTraitValueChange={handleTraitValueChange}
                               />
                               <td align="right">
                                 <Link
@@ -404,30 +419,30 @@ export default function IndexPage(props: Props) {
                                   }
                                   passHref={true}
                                 >
+                                  <a
+                                    href="#"
+                                    className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
+                                  >
+                                    <PencilAltIcon
+                                      className="w-5 h-5 text-gray-400"
+                                      aria-hidden="true"
+                                    />
+                                  </a>
+                                </Link>
                                 <a
                                   href="#"
+                                  onClick={(e) =>
+                                    confirmDeleteTraitValue(e, traitValue.id)
+                                  }
                                   className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
                                 >
-                                <PencilAltIcon
-                                  className="w-5 h-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
+                                  <TrashIcon
+                                    className="w-5 h-5 text-gray-400"
+                                    aria-hidden="true"
+                                  />
                                 </a>
-                              </Link>
-                              <a
-                                href="#"
-                                onClick={(e) =>
-                                  confirmDeleteTraitValue(e, traitValue.id)
-                                }
-                                className="inline-block mr-2 text-indigo-600 hover:text-indigo-900"
-                              >
-                                <TrashIcon
-                                  className="w-5 h-5 text-gray-400"
-                                  aria-hidden="true"
-                                />
-                              </a>
-                            </td>
-                          </tr>
+                              </td>
+                            </tr>
                           );
                         })}
                       </tbody>
